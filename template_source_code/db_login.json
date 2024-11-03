@@ -1,0 +1,7 @@
+{
+    "user": "gta_uXX",
+    "password": "gta_pw",
+    "host": "ikgpgis.ethz.ch",
+    "port": "5432",
+    "database": "gta"
+}
