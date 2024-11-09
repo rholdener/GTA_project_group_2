@@ -95,7 +95,7 @@ function get_location() {
             console.log("User's location:", latitude, longitude);
             
             // Send location to the backend
-            sendLocationToBackend(latitude, longitude);
+            send_location_to_backend(latitude, longitude);
         }, (error) => {
             console.error("Error getting location:", error);
         });
