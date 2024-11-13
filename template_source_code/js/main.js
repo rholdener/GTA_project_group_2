@@ -110,16 +110,6 @@ function onload() {
 		$("#fillInFormDiv").parent().css('z-index',500);
 	});
 
-
-// Shows a form for the user to enter POI name
-function formSubmit() {
-	console.log("submitted POI Name: "+$("#poiName").val());
-	appState.name = $("#poiName").val();
-	insertPoint(appState.latLng.lat, appState.latLng.lng, appState.name);
-	$("#fillInForm").trigger("reset");
-	$("#fillInFormDiv").dialog("close");
-}
-
 // INSERT point
 // REF: https://github.com/Georepublic/leaflet-wfs/blob/master/index.html#L201
 function insertPoint(lat, lng, name) {
@@ -171,8 +161,30 @@ function insertPoint(lat, lng, name) {
 	});
 }
 
+function get_location() {
+	if (navigator.geolocation) {
+			navigator.geolocation.getCurrentPosition((position) => {
+					const latitude = position.coords.latitude;
+					const longitude = position.coords.longitude;
+					console.log("User's location:", latitude, longitude);
+					
+					// Send location to the backend
+					send_location_to_backend(latitude, longitude);
+			}, (error) => {
+					console.error("Error getting location:", error);
+			});
+	} else {
+			console.error("Geolocation is not supported by this browser.");
+	}
+
+	setInterval(get_location,10000)
+}
+
+
 
 // start funktion, die alle 10 sek aufegrufen wird
-
+$('#start').click(function() {
+	get_location()
+})
 
 // end funktion
