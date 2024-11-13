@@ -83,17 +83,6 @@ function onload() {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
     map.addLayer(appState.markers);
-
-		// start funktion, die alle 10 sek aufegrufen wird
-		$( '#start' ).click(function() {
-			get_location()
-		})
-
-		// end funktion
-
-		$('end').click(function() {
-			end()
-		})
 }
 
 // INSERT point
@@ -166,3 +155,15 @@ function get_location() {
 
 	setInterval(get_location,10000)
 }
+
+
+// start funktion, die alle 10 sek aufegrufen wird
+$( '#start' ).click(function() {
+	get_location()
+})
+
+// end funktion
+
+$('end').click(function() {
+	end()
+})
