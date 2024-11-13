@@ -82,7 +82,7 @@ function onload() {
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
-    map.addLayer(appState.markers);
+    //map.addLayer(appState.markers);
 }
 
 // INSERT point
@@ -163,3 +163,7 @@ $('#start').click(function() {
 })
 
 // end funktion
+
+$('end').click(function() {
+	end()
+})
