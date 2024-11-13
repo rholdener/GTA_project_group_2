@@ -82,7 +82,7 @@ function onload() {
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
-    //map.addLayer(appState.markers);
+    map.addLayer(appState.markers);
 }
 
 // INSERT point
@@ -142,9 +142,10 @@ function get_location() {
 					const latitude = position.coords.latitude;
 					const longitude = position.coords.longitude;
 					console.log("User's location:", latitude, longitude);
+					time = Date.now()
 					
 					// Send location to the backend
-					insertPoint(latitude, longitude);
+					insertPoint(latitude, longitude, time);
 			}, (error) => {
 					console.error("Error getting location:", error);
 			});
