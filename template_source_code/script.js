@@ -1,13 +1,3 @@
-function demo_javascript_method() {
-    const url = 'http://localhost:8989/access_with_javascript'
-    fetch(url)
-        .then(response => response.json())
-        .then(json => {
-            console.log(json);
-            document.getElementById("demo").innerHTML = JSON.stringify(json)
-        })
-}
-
 function demo_get_ajax() {
     $.ajax({
         // URL to the Vercel production deployment (vercel --prod will give you this link)
@@ -38,31 +28,6 @@ function demo_post_ajax() {
     });
 }
 
-// SOLUTION TASK 4
-function decrease_value() {
-    current_val = document.getElementById("number").innerHTML
-    const url = 'http://localhost:8989/decrease_value?value=' + current_val
-    fetch(url)
-        .then(response => response.json())
-        .then(json => {
-            console.log(json);
-            current_val = json;
-            document.getElementById("number").innerHTML = JSON.stringify(json)
-        })
-}
-
-// SOLUTION TASK 4
-function increase_value() {
-    current_val = document.getElementById("number").innerHTML
-    const url = 'http://localhost:8989/increase_value?value=' + current_val
-    fetch(url)
-        .then(response => response.json())
-        .then(json => {
-            console.log(json);
-            current_val = json;
-            document.getElementById("number").innerHTML = JSON.stringify(json)
-        })
-}
 
 // Function to send location data to the backend
 function send_location_to_backend(latitude, longitude){

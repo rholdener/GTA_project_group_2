@@ -84,3 +84,95 @@ function onload() {
     }).addTo(map);
     map.addLayer(appState.markers);
 }
+
+// ------- WFS -------
+	
+	// button to upload data (add POI)
+	$( "#uploadBtn" ).click(function() {
+		formSubmit();
+	});
+	
+	// For dialog form
+	$("#fillInFormDiv").dialog({
+		modal: true,
+		autoOpen: false,
+		height: 400,
+		width: 350,
+		close: function() {
+			$("#fillInForm").trigger("reset");
+			$(this).dialog("close");
+		}
+	});
+
+	$("#fillInBtn").on("click", function() {
+		$("#fillInForm").trigger("reset");
+		$("#fillInFormDiv").dialog("open");
+		$("#fillInFormDiv").parent().css('z-index',500);
+	});
+
+
+// Shows a form for the user to enter POI name
+function formSubmit() {
+	console.log("submitted POI Name: "+$("#poiName").val());
+	appState.name = $("#poiName").val();
+	insertPoint(appState.latLng.lat, appState.latLng.lng, appState.name);
+	$("#fillInForm").trigger("reset");
+	$("#fillInFormDiv").dialog("close");
+}
+
+// INSERT point
+// REF: https://github.com/Georepublic/leaflet-wfs/blob/master/index.html#L201
+function insertPoint(lat, lng, name) {
+	let postData = 
+		'<wfs:Transaction\n'
+	  + '  service="WFS"\n'
+	  + '  version="1.0.0"\n'
+	  + '  xmlns="http://www.opengis.net/wfs"\n'
+	  + '  xmlns:wfs="http://www.opengis.net/wfs"\n'
+	  + '  xmlns:gml="http://www.opengis.net/gml"\n'
+	  + '  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"\n'
+	  + '  xmlns:GTA24_lab06="https://www.gis.ethz.ch/GTA24_lab06" \n'
+	  + '  xsi:schemaLocation="https://www.gis.ethz.ch/GTA24_lab06 \n https://baug-ikg-gis-01.ethz.ch:8443/geoserver/GTA24_lab06/wfs?service=WFS&amp;version=1.0.0&amp;request=DescribeFeatureType&amp;typeName=GTA24_lab06%3Awebapp_trajectory_point \n'
+	  + '                      http://www.opengis.net/wfs\n'
+	  + '                      https://baug-ikg-gis-01.ethz.ch:8443/geoserver/schemas/wfs/1.0.0/WFS-basic.xsd">\n'
+	  + '  <wfs:Insert>\n'
+	  + '    <GTA24_lab06:webapp_trajectory_point>\n'
+	  + '      <lon>'+lng+'</lon>\n'
+	  + '      <lat>'+lat+'</lat>\n'
+	  + '      <name>'+name+'</name>\n'
+	  + '      <geometry>\n'
+	  + '        <gml:Point srsName="http://www.opengis.net/gml/srs/epsg.xml#4326">\n'
+	  + '          <gml:coordinates xmlns:gml="http://www.opengis.net/gml" decimal="." cs="," ts=" ">'+lng+ ',' +lat+'</gml:coordinates>\n'
+	  + '        </gml:Point>\n'
+	  + '      </geometry>\n'
+	  + '    </GTA24_lab06:webapp_trajectory_point>\n'
+	  + '  </wfs:Insert>\n'
+	  + '</wfs:Transaction>';
+	
+	$.ajax({
+		method: "POST",
+		url: wfs,
+		dataType: "xml",
+		contentType: "text/xml",
+		data: postData,
+		success: function() {	
+			//Success feedback
+			console.log("Success from AJAX, data sent to Geoserver");
+			
+			// Do something to notisfy user
+			alert("Check if data is inserted into database");
+		},
+		error: function (xhr, errorThrown) {
+			//Error handling
+			console.log("Error from AJAX");
+			console.log(xhr.status);
+			console.log(errorThrown);
+		  }
+	});
+}
+
+
+// start funktion, die alle 10 sek aufegrufen wird
+
+
+// end funktion
