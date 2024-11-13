@@ -87,7 +87,7 @@ function onload() {
 
 // INSERT point
 // REF: https://github.com/Georepublic/leaflet-wfs/blob/master/index.html#L201
-function insertPoint(lat, lng, name) {
+function insertPoint(lat, lng, time) {
 	let postData = 
 		'<wfs:Transaction\n'
 	  + '  service="WFS"\n'
@@ -104,7 +104,7 @@ function insertPoint(lat, lng, name) {
 	  + '    <GTA24_lab06:webapp_trajectory_point>\n'
 	  + '      <lon>'+lng+'</lon>\n'
 	  + '      <lat>'+lat+'</lat>\n'
-	  + '      <name>'+name+'</name>\n'
+	  + '      <time>'+time+'</time>\n'
 	  + '      <geometry>\n'
 	  + '        <gml:Point srsName="http://www.opengis.net/gml/srs/epsg.xml#4326">\n'
 	  + '          <gml:coordinates xmlns:gml="http://www.opengis.net/gml" decimal="." cs="," ts=" ">'+lng+ ',' +lat+'</gml:coordinates>\n'
@@ -144,7 +144,7 @@ function get_location() {
 					console.log("User's location:", latitude, longitude);
 					
 					// Send location to the backend
-					send_location_to_backend(latitude, longitude);
+					insertPoint(latitude, longitude);
 			}, (error) => {
 					console.error("Error getting location:", error);
 			});
