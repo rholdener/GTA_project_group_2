@@ -85,31 +85,6 @@ function onload() {
     map.addLayer(appState.markers);
 }
 
-// ------- WFS -------
-	
-	// button to upload data (add POI)
-	$( "#uploadBtn" ).click(function() {
-		formSubmit();
-	});
-	
-	// For dialog form
-	$("#fillInFormDiv").dialog({
-		modal: true,
-		autoOpen: false,
-		height: 400,
-		width: 350,
-		close: function() {
-			$("#fillInForm").trigger("reset");
-			$(this).dialog("close");
-		}
-	});
-
-	$("#fillInBtn").on("click", function() {
-		$("#fillInForm").trigger("reset");
-		$("#fillInFormDiv").dialog("open");
-		$("#fillInFormDiv").parent().css('z-index',500);
-	});
-
 // INSERT point
 // REF: https://github.com/Georepublic/leaflet-wfs/blob/master/index.html#L201
 function insertPoint(lat, lng, name) {
