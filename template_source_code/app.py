@@ -1,11 +1,5 @@
-import numpy as np
-
-import pyproj
-
 from flask import Flask, jsonify, request
 from flask_cors import CORS, cross_origin  # needs to be installed via pip install flask-cors
-
-from backend import get_mean_value_from_table
 
 app = Flask(__name__)
 CORS(app, origins=["*", "null"])  # allowing any origin as well as localhost (null)
