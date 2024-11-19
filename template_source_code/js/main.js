@@ -6,11 +6,18 @@ let appState = {
     heading: null,
 	name: null,
 	time: null,
+	trip_id: null,
 };
+
 
 let wfs = 'https://baug-ikg-gis-01.ethz.ch:8443/geoserver/GTA24_lab06/wfs';
 let timer = null;
 
+
+function formatTime(timestamp) {
+    const date = new Date(timestamp);
+    return date.toISOString(); // Konvertiert in ISO 8601 Format: yyyy-MM-ddTHH:mm:ss.sssZ
+}
 
 function drawMarkers() {
     if (map && appState.markers && appState.latLng && appState.radius) {
@@ -36,7 +43,6 @@ function drawMarkers() {
     }
 }
 
-
 /**
  * Function to be called whenever a new position is available.
  * @param position The new position.
@@ -55,7 +61,6 @@ function geoSuccess(position) {
     }
 }
 
-
 /**
  * Function to be called if there is an error raised by the Geolocation API.
  * @param error Describing the error in more detail.
@@ -71,8 +76,6 @@ let geoOptions = {
     maximumAge: 15000,  // The maximum age of a cached location (15 seconds).
     timeout: 12000   // A maximum of 12 seconds before timeout.
 };
-
-
 
 /**
  * The onload function is called when the HTML has finished loading.
@@ -109,10 +112,9 @@ function onload() {
 }
 
 
-
 // INSERT point
 // REF: https://github.com/Georepublic/leaflet-wfs/blob/master/index.html#L201
-function insertPoint(lat, lng, time) {
+function insertPoint(lat, lng, time, trip_id) {
 	let postData = `<wfs:Transaction
 			  service="WFS"
 			  version="1.0.0"
@@ -129,6 +131,7 @@ function insertPoint(lat, lng, time) {
 			  <wfs:Insert>
 				  <GTA24_lab06:webapp_trajectory_point>
 					  <point_id>101010101</point_id>
+					  <trip_id>${trip_id}</trip_id>
 					  <ri_value>1</ri_value>
 					  <time>${time}</time>
 					  <geometry>
@@ -163,21 +166,52 @@ function insertPoint(lat, lng, time) {
 	});
 }
 
-
-function formatTime(timestamp) {
-    const date = new Date(timestamp);
-    return date.toISOString(); // Konvertiert in ISO 8601 Format: yyyy-MM-ddTHH:mm:ss.sssZ
-}
-
-
 function get_location() {
 	if (appState.latLng) {
 		"app ausführen zum ri berechnen über vercel"
-        insertPoint(appState.latLng.lat, appState.latLng.lng, appState.time);
+        insertPoint(appState.latLng.lat, appState.latLng.lng, appState.time, appState.trip_id);
     }
 }
 
+function fetchHighestTripId(callback) {
+    let query = `
+        <wfs:GetFeature 
+            service="WFS" 
+            version="1.1.0" 
+            outputFormat="application/json" 
+            xmlns:wfs="http://www.opengis.net/wfs" 
+            xmlns:ogc="http://www.opengis.net/ogc">
+            <wfs:Query typeName="GTA24_lab06:webapp_trajectory_point" srsName="EPSG:4326">
+                <ogc:SortBy>
+                    <ogc:SortProperty>
+                        <ogc:PropertyName>trip_id</ogc:PropertyName>
+                        <ogc:SortOrder>DESC</ogc:SortOrder>
+                    </ogc:SortProperty>
+                </ogc:SortBy>
+                <ogc:MaxFeatures>1</ogc:MaxFeatures>
+            </wfs:Query>
+        </wfs:GetFeature>
+    `;
 
+    $.ajax({
+        method: "POST",
+        url: wfs,
+        contentType: "text/xml",
+        dataType: "json",
+        data: query,
+        success: function (data) {
+            let highestTripId = 0;
+            if (data.features && data.features.length > 0) {
+                highestTripId = parseInt(data.features[0].properties.trip_id, 10);
+            }
+            callback(highestTripId + 1);
+        },
+        error: function (xhr, status, error) {
+            console.error("Fehler beim Abrufen der höchsten Trip-ID:", error);
+            callback(1); // Fallback auf 1, falls es keine Einträge gibt.
+        }
+    });
+}
 
 
 // Tracking starten
@@ -185,13 +219,20 @@ function startTracking() {
     if (timer) {
         clearInterval(timer);
     }
-    timer = setInterval(() => {
-        if (appState.latLng && appState.time) {
-            insertPoint(appState.latLng.lat, appState.latLng.lng, appState.time);
-        }
-    }, 10000);  // Alle 10 Sekunden
-    $("#start").prop('disabled', true);
-    $("#end").prop('disabled', false);
+
+    // Abrufen der nächsten Trip-ID
+    fetchHighestTripId(function (nextTripId) {
+        appState.trip_id = nextTripId; // Nächste aufsteigende Trip-ID
+
+        timer = setInterval(() => {
+            if (appState.latLng && appState.time) {
+                insertPoint(appState.latLng.lat, appState.latLng.lng, appState.time, appState.trip_id);
+            }
+        }, 10000);  // Alle 10 Sekunden
+
+        $("#start").prop('disabled', true);
+        $("#end").prop('disabled', false);
+    });
 }
 
 // Tracking stoppen
