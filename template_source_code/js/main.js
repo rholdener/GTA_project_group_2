@@ -114,7 +114,7 @@ function onload() {
 
 // INSERT point
 // REF: https://github.com/Georepublic/leaflet-wfs/blob/master/index.html#L201
-function insertPoint(lat, lng, time, trip_id) {
+function insertPoint(lat, lng, time, trip_id, ri_value) {
 	let postData = `<wfs:Transaction
 			  service="WFS"
 			  version="1.0.0"
@@ -132,7 +132,7 @@ function insertPoint(lat, lng, time, trip_id) {
 				  <GTA24_lab06:webapp_trajectory_point>
 					  <point_id>101010101</point_id>
 					  <trip_id>${trip_id}</trip_id>
-					  <ri_value>1</ri_value>
+					  <ri_value>${ri_value}</ri_value>
 					  <time>${time}</time>
 					  <geometry>
 						  <gml:Point srsName="http://www.opengis.net/gml/srs/epsg.xml#4326">
@@ -166,12 +166,7 @@ function insertPoint(lat, lng, time, trip_id) {
 	});
 }
 
-function get_location() {
-	if (appState.latLng) {
-		"app ausführen zum ri berechnen über vercel"
-        insertPoint(appState.latLng.lat, appState.latLng.lng, appState.time, appState.trip_id);
-    }
-}
+
 
 function fetchHighestTripId(callback) {
     let query = `
@@ -226,7 +221,11 @@ function startTracking() {
 
         timer = setInterval(() => {
             if (appState.latLng && appState.time) {
-                insertPoint(appState.latLng.lat, appState.latLng.lng, appState.time, appState.trip_id);
+
+				let ri_value = 7
+				//ri_value mit /calculate_ri berechnen
+
+                insertPoint(appState.latLng.lat, appState.latLng.lng, appState.time, appState.trip_id, ri_value);
             }
         }, 10000);  // Alle 10 Sekunden
 
