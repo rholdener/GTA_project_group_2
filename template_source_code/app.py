@@ -1,4 +1,4 @@
-import numpy as np
+"""import numpy as np
 
 import pyproj
 
@@ -56,4 +56,4 @@ def getLocation():
     return jsonify({"status": "success", "message": "Location data stored"}), 200
 
 if __name__ == '__main__':
-    app.run(port=8989, debug=True)
+    app.run(port=8989, debug=True)"""

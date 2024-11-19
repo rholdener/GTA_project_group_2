@@ -1,23 +1,40 @@
 let map;
 let appState = {
-    markers: null
+    markers: null,
+    latLng: null,
+    radius: null,
+    heading: null,
+	name: null,
+	time: null,
 };
 
-/**
- * Draws the markers on the map.
- */
+let wfs = 'https://baug-ikg-gis-01.ethz.ch:8443/geoserver/GTA24_lab06/wfs';
+
+
 function drawMarkers() {
-    if (map && appState.markers) {
+    if (map && appState.markers && appState.latLng && appState.radius) {
         appState.markers.clearLayers();
-        // READ trackpoints FROM LocalStorage HERE.
-        // for (let tp of ...) {
-            // let circle = L.circle(..., {
-            //     radius: ...
-            // });
-            // appState.markers.addLayer(circle);
-        // }
+        let circle = L.circle(appState.latLng, {
+            radius: appState.radius
+        });
+        appState.markers.addLayer(circle);
+
+        if (appState.heading !== null) {
+			let radius = circle.getBounds().getCenter().lat - circle.getBounds().getSouth();
+            let startPointLat = appState.latLng.lat - radius * Math.cos(appState.heading);
+            let startPointLng = appState.latLng.lng - radius * Math.sin(appState.heading);
+            let endPointLat = appState.latLng.lat - radius * 3 * Math.cos(appState.heading);
+            let endPointLng = appState.latLng.lng - radius * 3 * Math.sin(appState.heading);
+
+            LatLngsHeading = [
+                [startPointLat, startPointLng],
+                [endPointLat, endPointLng]
+            ];
+            appState.markers.addLayer(L.polyline(LatLngsHeading, {color: 'rgb(255, 0, 0)'}));
+        }
     }
 }
+
 
 /**
  * Function to be called whenever a new position is available.
@@ -26,25 +43,17 @@ function drawMarkers() {
 function geoSuccess(position) {
     let lat = position.coords.latitude;
     let lng = position.coords.longitude;
-    latLng = L.latLng(lat, lng);
-    radius = position.coords.accuracy / 2;
-    time = Date.now();
+    appState.latLng = L.latLng(lat, lng);
+    appState.radius = position.coords.accuracy / 2;
+    appState.time = formatTime(Date.now());
+	drawMarkers();
 
-    // Store the recorded locations in the LocalStorage.
-    if ('trackpoints' in localStorage) {
-        // TAKE EXISTING LIST FROM LocalStorage, AND APPEND NEW POSITION.
-
-    } else {
-        // STORE A NEW LIST IN LocalStorage HERE.
-        
-    }
 
     if (map) {
-        map.setView(latLng);
+        map.setView(appState.latLng);
     }
-
-    drawMarkers();
 }
+
 
 /**
  * Function to be called if there is an error raised by the Geolocation API.
@@ -62,7 +71,7 @@ let geoOptions = {
     timeout: 12000   // A maximum of 12 seconds before timeout.
 };
 
-// CATCH THE BUTTON CLICK FOR THE DOWNLOAD HERE
+
 
 /**
  * The onload function is called when the HTML has finished loading.
@@ -74,6 +83,16 @@ function onload() {
         navigator.geolocation.watchPosition(geoSuccess, geoError, geoOptions);
     } else {
         errMsg.text(errMsg.text() + "Geolocation is leider auf diesem Gerät nicht verfügbar. ");
+        errMsg.show();
+    }
+
+	if (window.DeviceOrientationEvent) {
+        window.addEventListener('deviceorientation', function (eventData) {
+            appState.heading = eventData.alpha * (Math.PI / 180);
+            drawMarkers();
+        }, false);
+    } else {
+        errMsg.text(errMsg.text() + "DeviceOrientation ist leider nicht verfügbar. ");
         errMsg.show();
     }
 
@@ -102,9 +121,10 @@ function insertPoint(lat, lng, time) {
 	  + '                      https://baug-ikg-gis-01.ethz.ch:8443/geoserver/schemas/wfs/1.0.0/WFS-basic.xsd">\n'
 	  + '  <wfs:Insert>\n'
 	  + '    <GTA24_lab06:webapp_trajectory_point>\n'
-	  + '      <lon>'+lng+'</lon>\n'
-	  + '      <lat>'+lat+'</lat>\n'
-	  + '      <time>'+time+'</time>\n'
+	  + '      <point_id>123</point_id>\n'
+	  + '      <trip_id>123</trip_id>\n'
+	  + '      <ri_value>1</ri_value>\n'
+	  + '      <time></time>\n'
 	  + '      <geometry>\n'
 	  + '        <gml:Point srsName="http://www.opengis.net/gml/srs/epsg.xml#4326">\n'
 	  + '          <gml:coordinates xmlns:gml="http://www.opengis.net/gml" decimal="." cs="," ts=" ">'+lng+ ',' +lat+'</gml:coordinates>\n'
@@ -132,38 +152,27 @@ function insertPoint(lat, lng, time) {
 			console.log("Error from AJAX");
 			console.log(xhr.status);
 			console.log(errorThrown);
+			console.log("Response text: ", xhr.responseText);  
 		  }
 	});
 }
 
-function get_location() {
-	if (navigator.geolocation) {
-			navigator.geolocation.getCurrentPosition((position) => {
-					const latitude = position.coords.latitude;
-					const longitude = position.coords.longitude;
-					console.log("User's location:", latitude, longitude);
-					time = Date.now()
-					
-					// Send location to the backend
-					insertPoint(latitude, longitude, time);
-			}, (error) => {
-					console.error("Error getting location:", error);
-			});
-	} else {
-			console.error("Geolocation is not supported by this browser.");
-	}
 
-	setInterval(get_location,10000)
+function formatTime(timestamp) {
+    const date = new Date(timestamp);
+    return date.toISOString(); // Konvertiert in ISO 8601 Format: yyyy-MM-ddTHH:mm:ss.sssZ
 }
 
 
-// start funktion, die alle 10 sek aufegrufen wird
-$( '#start' ).click(function() {
+function get_location() {
+	if (appState.latLng) {
+        insertPoint(appState.latLng.lat, appState.latLng.lng, appState.time);
+    }
+}
+
+
+let trackingInterval = null; // Variable zum Speichern des Intervalls
+
+$('#start').click(function () {
 	get_location()
-})
-
-// end funktion
-
-$('end').click(function() {
-	end()
-})
+});
