@@ -6,10 +6,18 @@ let appState = {
     heading: null,
 	name: null,
 	time: null,
+	trip_id: null,
 };
 
-let wfs = 'https://baug-ikg-gis-01.ethz.ch:8443/geoserver/GTA24_lab06/wfs';
 
+let wfs = 'https://baug-ikg-gis-01.ethz.ch:8443/geoserver/GTA24_lab06/wfs';
+let timer = null;
+
+
+function formatTime(timestamp) {
+    const date = new Date(timestamp);
+    return date.toISOString(); // Konvertiert in ISO 8601 Format: yyyy-MM-ddTHH:mm:ss.sssZ
+}
 
 function drawMarkers() {
     if (map && appState.markers && appState.latLng && appState.radius) {
@@ -71,8 +79,6 @@ let geoOptions = {
     timeout: 12000   // A maximum of 12 seconds before timeout.
 };
 
-
-
 /**
  * The onload function is called when the HTML has finished loading.
  */
@@ -102,37 +108,42 @@ function onload() {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
     map.addLayer(appState.markers);
+	  // Button-Event-Handler registrieren
+	$("#start").click(startTracking);
+    $("#end").click(stopTracking).hide(); // End-Button zu Beginn verstecken
 }
+
 
 // INSERT point
 // REF: https://github.com/Georepublic/leaflet-wfs/blob/master/index.html#L201
-function insertPoint(lat, lng, time) {
-	let postData = 
-		'<wfs:Transaction\n'
-	  + '  service="WFS"\n'
-	  + '  version="1.0.0"\n'
-	  + '  xmlns="http://www.opengis.net/wfs"\n'
-	  + '  xmlns:wfs="http://www.opengis.net/wfs"\n'
-	  + '  xmlns:gml="http://www.opengis.net/gml"\n'
-	  + '  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"\n'
-	  + '  xmlns:GTA24_lab06="https://www.gis.ethz.ch/GTA24_lab06" \n'
-	  + '  xsi:schemaLocation="https://www.gis.ethz.ch/GTA24_lab06 \n https://baug-ikg-gis-01.ethz.ch:8443/geoserver/GTA24_lab06/wfs?service=WFS&amp;version=1.0.0&amp;request=DescribeFeatureType&amp;typeName=GTA24_lab06%3Awebapp_trajectory_point \n'
-	  + '                      http://www.opengis.net/wfs\n'
-	  + '                      https://baug-ikg-gis-01.ethz.ch:8443/geoserver/schemas/wfs/1.0.0/WFS-basic.xsd">\n'
-	  + '  <wfs:Insert>\n'
-	  + '    <GTA24_lab06:webapp_trajectory_point>\n'
-	  + '      <point_id>123</point_id>\n'
-	  + '      <trip_id>123</trip_id>\n'
-	  + '      <ri_value>1</ri_value>\n'
-	  + '      <time></time>\n'
-	  + '      <geometry>\n'
-	  + '        <gml:Point srsName="http://www.opengis.net/gml/srs/epsg.xml#4326">\n'
-	  + '          <gml:coordinates xmlns:gml="http://www.opengis.net/gml" decimal="." cs="," ts=" ">'+lng+ ',' +lat+'</gml:coordinates>\n'
-	  + '        </gml:Point>\n'
-	  + '      </geometry>\n'
-	  + '    </GTA24_lab06:webapp_trajectory_point>\n'
-	  + '  </wfs:Insert>\n'
-	  + '</wfs:Transaction>';
+function insertPoint(lat, lng, time, trip_id, ri_value) {
+	let postData = `<wfs:Transaction
+			  service="WFS"
+			  version="1.0.0"
+			  xmlns="http://www.opengis.net/wfs"
+			  xmlns:wfs="http://www.opengis.net/wfs"
+			  xmlns:gml="http://www.opengis.net/gml"
+			  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			  xmlns:GTA24_lab06="https://www.gis.ethz.ch/GTA24_lab06"
+			  xsi:schemaLocation="
+				  https://www.gis.ethz.ch/GTA24_lab06
+				  https://baug-ikg-gis-01.ethz.ch:8443/geoserver/GTA24_lab06/wfs?service=WFS&amp;version=1.0.0&amp;request=DescribeFeatureType&amp;typeName=GTA24_lab06%3Awebapp_trajectory_point
+				  http://www.opengis.net/wfs
+				  https://baug-ikg-gis-01.ethz.ch:8443/geoserver/schemas/wfs/1.0.0/WFS-basic.xsd">
+			  <wfs:Insert>
+				  <GTA24_lab06:webapp_trajectory_point>
+					  <point_id>101010101</point_id>
+					  <trip_id>${trip_id}</trip_id>
+					  <ri_value>${ri_value}</ri_value>
+					  <time>${time}</time>
+					  <geometry>
+						  <gml:Point srsName="http://www.opengis.net/gml/srs/epsg.xml#4326">
+							  <gml:coordinates xmlns:gml="http://www.opengis.net/gml" decimal="." cs="," ts=" ">${lng},${lat}</gml:coordinates>
+						  </gml:Point>
+					  </geometry>
+				  </GTA24_lab06:webapp_trajectory_point>
+			  </wfs:Insert>
+		  </wfs:Transaction>`;
 	
 	$.ajax({
 		method: "POST",
@@ -164,15 +175,80 @@ function formatTime(timestamp) {
 }
 
 
-function get_location() {
-	if (appState.latLng) {
-        insertPoint(appState.latLng.lat, appState.latLng.lng, appState.time);
-    }
+
+
+function fetchHighestTripId(callback) {
+    let query = `
+        <wfs:GetFeature 
+            service="WFS" 
+            version="1.1.0" 
+            outputFormat="application/json" 
+            xmlns:wfs="http://www.opengis.net/wfs" 
+            xmlns:ogc="http://www.opengis.net/ogc">
+            <wfs:Query typeName="GTA24_lab06:webapp_trajectory_point" srsName="EPSG:4326">
+                <ogc:SortBy>
+                    <ogc:SortProperty>
+                        <ogc:PropertyName>trip_id</ogc:PropertyName>
+                        <ogc:SortOrder>DESC</ogc:SortOrder>
+                    </ogc:SortProperty>
+                </ogc:SortBy>
+                <ogc:MaxFeatures>1</ogc:MaxFeatures>
+            </wfs:Query>
+        </wfs:GetFeature>
+    `;
+
+    $.ajax({
+        method: "POST",
+        url: wfs,
+        contentType: "text/xml",
+        dataType: "json",
+        data: query,
+        success: function (data) {
+            let highestTripId = 0;
+            if (data.features && data.features.length > 0) {
+                highestTripId = parseInt(data.features[0].properties.trip_id, 10);
+            }
+            callback(highestTripId + 1);
+        },
+        error: function (xhr, status, error) {
+            console.error("Fehler beim Abrufen der höchsten Trip-ID:", error);
+            callback(1); // Fallback auf 1, falls es keine Einträge gibt.
+        }
+    });
 }
 
 
-let trackingInterval = null; // Variable zum Speichern des Intervalls
+// Tracking start
+function startTracking() {
+    if (timer) {
+        clearInterval(timer);
+    }
 
-$('#start').click(function () {
-	get_location()
-});
+    // Abrufen der nächsten Trip-ID
+    fetchHighestTripId(function (nextTripId) {
+        appState.trip_id = nextTripId; // Nächste aufsteigende Trip-ID
+
+        timer = setInterval(() => {
+            if (appState.latLng && appState.time) {
+                let ri_value = 7;
+                // Berechnung des ri_value über /calculate_ri
+
+                insertPoint(appState.latLng.lat, appState.latLng.lng, appState.time, appState.trip_id, ri_value);
+            }
+        }, 10000);  // Alle 10 Sekunden
+
+        // Buttons umschalten
+        $("#start").hide(); // Versteckt den "Start"-Button
+        $("#end").show();   // Zeigt den "End"-Button
+    });
+}
+
+// Tracking stop
+function stopTracking() {
+    clearInterval(timer);
+    timer = null;
+
+    // Buttons umschalten
+    $("#start").show(); // Zeigt den "Start"-Button
+    $("#end").hide();   // Versteckt den "End"-Button
+}
