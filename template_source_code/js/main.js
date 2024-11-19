@@ -9,6 +9,7 @@ let appState = {
 };
 
 let wfs = 'https://baug-ikg-gis-01.ethz.ch:8443/geoserver/GTA24_lab06/wfs';
+let timer = null;
 
 
 function drawMarkers() {
@@ -102,37 +103,42 @@ function onload() {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
     map.addLayer(appState.markers);
+	  // Button-Event-Handler registrieren
+	  $("#start").click(startTracking);
+	  $("#end").click(stopTracking).prop('disabled', true);  // "End"-Button deaktiviert starten
 }
+
+
 
 // INSERT point
 // REF: https://github.com/Georepublic/leaflet-wfs/blob/master/index.html#L201
 function insertPoint(lat, lng, time) {
-	let postData = 
-		'<wfs:Transaction\n'
-	  + '  service="WFS"\n'
-	  + '  version="1.0.0"\n'
-	  + '  xmlns="http://www.opengis.net/wfs"\n'
-	  + '  xmlns:wfs="http://www.opengis.net/wfs"\n'
-	  + '  xmlns:gml="http://www.opengis.net/gml"\n'
-	  + '  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"\n'
-	  + '  xmlns:GTA24_lab06="https://www.gis.ethz.ch/GTA24_lab06" \n'
-	  + '  xsi:schemaLocation="https://www.gis.ethz.ch/GTA24_lab06 \n https://baug-ikg-gis-01.ethz.ch:8443/geoserver/GTA24_lab06/wfs?service=WFS&amp;version=1.0.0&amp;request=DescribeFeatureType&amp;typeName=GTA24_lab06%3Awebapp_trajectory_point \n'
-	  + '                      http://www.opengis.net/wfs\n'
-	  + '                      https://baug-ikg-gis-01.ethz.ch:8443/geoserver/schemas/wfs/1.0.0/WFS-basic.xsd">\n'
-	  + '  <wfs:Insert>\n'
-	  + '    <GTA24_lab06:webapp_trajectory_point>\n'
-	  + '      <point_id>123</point_id>\n'
-	  + '      <trip_id>123</trip_id>\n'
-	  + '      <ri_value>1</ri_value>\n'
-	  + '      <time></time>\n'
-	  + '      <geometry>\n'
-	  + '        <gml:Point srsName="http://www.opengis.net/gml/srs/epsg.xml#4326">\n'
-	  + '          <gml:coordinates xmlns:gml="http://www.opengis.net/gml" decimal="." cs="," ts=" ">'+lng+ ',' +lat+'</gml:coordinates>\n'
-	  + '        </gml:Point>\n'
-	  + '      </geometry>\n'
-	  + '    </GTA24_lab06:webapp_trajectory_point>\n'
-	  + '  </wfs:Insert>\n'
-	  + '</wfs:Transaction>';
+	let postData = `<wfs:Transaction
+			  service="WFS"
+			  version="1.0.0"
+			  xmlns="http://www.opengis.net/wfs"
+			  xmlns:wfs="http://www.opengis.net/wfs"
+			  xmlns:gml="http://www.opengis.net/gml"
+			  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			  xmlns:GTA24_lab06="https://www.gis.ethz.ch/GTA24_lab06"
+			  xsi:schemaLocation="
+				  https://www.gis.ethz.ch/GTA24_lab06
+				  https://baug-ikg-gis-01.ethz.ch:8443/geoserver/GTA24_lab06/wfs?service=WFS&amp;version=1.0.0&amp;request=DescribeFeatureType&amp;typeName=GTA24_lab06%3Awebapp_trajectory_point
+				  http://www.opengis.net/wfs
+				  https://baug-ikg-gis-01.ethz.ch:8443/geoserver/schemas/wfs/1.0.0/WFS-basic.xsd">
+			  <wfs:Insert>
+				  <GTA24_lab06:webapp_trajectory_point>
+					  <point_id>101010101</point_id>
+					  <ri_value>1</ri_value>
+					  <time>${time}</time>
+					  <geometry>
+						  <gml:Point srsName="http://www.opengis.net/gml/srs/epsg.xml#4326">
+							  <gml:coordinates xmlns:gml="http://www.opengis.net/gml" decimal="." cs="," ts=" ">${lng},${lat}</gml:coordinates>
+						  </gml:Point>
+					  </geometry>
+				  </GTA24_lab06:webapp_trajectory_point>
+			  </wfs:Insert>
+		  </wfs:Transaction>`;
 	
 	$.ajax({
 		method: "POST",
@@ -166,13 +172,34 @@ function formatTime(timestamp) {
 
 function get_location() {
 	if (appState.latLng) {
+		"app ausführen zum ri berechnen über vercel"
         insertPoint(appState.latLng.lat, appState.latLng.lng, appState.time);
     }
 }
 
 
-let trackingInterval = null; // Variable zum Speichern des Intervalls
 
-$('#start').click(function () {
-	get_location()
-});
+
+// Tracking starten
+function startTracking() {
+    if (timer) {
+        clearInterval(timer);
+    }
+    timer = setInterval(() => {
+        if (appState.latLng && appState.time) {
+            insertPoint(appState.latLng.lat, appState.latLng.lng, appState.time);
+        }
+    }, 10000);  // Alle 10 Sekunden
+    $("#start").prop('disabled', true);
+    $("#end").prop('disabled', false);
+}
+
+// Tracking stoppen
+function stopTracking() {
+    clearInterval(timer);
+    timer = null;
+    $("#start").prop('disabled', false);
+    $("#end").prop('disabled', true);
+}
+
+
