@@ -209,7 +209,7 @@ function fetchHighestTripId(callback) {
 }
 
 
-// Tracking starten
+// Tracking start
 function startTracking() {
     if (timer) {
         clearInterval(timer);
@@ -234,7 +234,7 @@ function startTracking() {
     });
 }
 
-// Tracking stoppen
+// Tracking stop
 function stopTracking() {
     clearInterval(timer);
     timer = null;
