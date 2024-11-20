@@ -155,8 +155,35 @@ function insertPoint(lat, lng, time, trip_id, ri_value) {
 		success: function() {	
 			//Success feedback
 			console.log("Success from AJAX, data sent to Geoserver");
-			
-		},
+
+            let marker = L.circleMarker([lat, lng], {
+                radius: 2,
+                color: "black",
+                fillColor: "black",
+                fillOpacity: 0.8
+            }).bindPopup(`Trip ID: ${trip_id}<br>RI Value: ${ri_value}<br>Time: ${time}`);
+            appState.markers.addLayer(marker);
+
+            
+
+           // Wenn es bereits einen vorherigen Punkt gibt, zeichnen wir eine Linie
+           if (appState.pointHistory.length > 0) {
+            let lastPoint = appState.pointHistory[appState.pointHistory.length - 1];
+            let latLngs = [
+                [lastPoint.lat, lastPoint.lng],  // Letzter Punkt
+                [lat, lng]                       // Neuer Punkt
+            ];
+
+            // Polyline (Linie) zwischen den Punkten zeichnen
+            let polyline = L.polyline(latLngs, { color: 'red' }).addTo(appState.markers);
+        }
+
+        // Den aktuellen Punkt zur Historie hinzufügen
+        appState.pointHistory.push({ lat: lat, lng: lng });
+    },
+
+
+
 		error: function (xhr, errorThrown) {
 			//Error handling
 			console.log("Error from AJAX");
