@@ -155,8 +155,6 @@ function insertPoint(lat, lng, time, trip_id, ri_value) {
 			//Success feedback
 			console.log("Success from AJAX, data sent to Geoserver");
 			
-			// Do something to notisfy user
-			alert("Check if data is inserted into database");
 		},
 		error: function (xhr, errorThrown) {
 			//Error handling
