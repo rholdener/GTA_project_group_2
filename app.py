@@ -43,7 +43,7 @@ def calculate_ri():
     cur = conn.cursor()
 
     # spatial query to get ri, noise, etc.
-    sql = "SELECT ri_data FROM gta_p2.ri_data WHERE ST_Contains(geom, ST_SetSRID(ST_MakePoint(%s, %s), 4326))"
+    sql = "SELECT ri_data FROM gta_p2.data_polygons WHERE ST_Contains(geometry, ST_SetSRID(ST_MakePoint(%s, %s), 4326))"
     cur.execute(sql, (lng, lat))
 
     data = cur.fetchall()
