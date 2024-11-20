@@ -45,11 +45,23 @@ def calculate_ri():
     # spatial query to get ri, noise, etc.
     sql = "SELECT ri_data FROM gta_p2.data_polygons WHERE ST_Contains(geometry, ST_SetSRID(ST_MakePoint(%s, %s), 4326))"
     cur.execute(sql, (lng, lat))
+    r_i = cur.fetchall()
 
-    data = cur.fetchall()
+    sql = "SELECT noise_data FROM gta_p2.data_polygons WHERE ST_Contains(geometry, ST_SetSRID(ST_MakePoint(%s, %s), 4326))"
+    cur.execute(sql, (lng, lat))
+    noise = cur.fetchall()
+
+    sql = "SELECT min(ST_DISTANCE(geometry, ST_SetSRID(ST_MakePoint(%s, %s)))) FROM gta_p2.trees"
+    cur.execute(sql, (lng, lat))
+    distance = cur.fetchall()
+
     conn.close()
 
-    # modify data
+    data = {
+        'ri': r_i,
+        'noise': noise,
+        'distance': distance
+    }
 
     return jsonify(data), 200
 
