@@ -34,7 +34,7 @@ def test_data():
 
 @app.route('/calculate_ri', methods=['GET'])
 def calculate_ri():
-    lat, lng = int(request.args.get('lat')), int(request.args.get('lng'))
+    lat, lng = float(request.args.get('lat')), float(request.args.get('lng'))
 
     with open('template_source_code/db_login.json', 'r') as file:
         db_credentials = json5.load(file)
