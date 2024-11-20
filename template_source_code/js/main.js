@@ -7,6 +7,7 @@ let appState = {
 	name: null,
 	time: null,
 	trip_id: null,
+    pointHistory: []
 };
 
 
@@ -19,6 +20,7 @@ function formatTime(timestamp) {
     const date = new Date(timestamp);
     return date.toISOString(); // Konvertiert in ISO 8601 Format: yyyy-MM-ddTHH:mm:ss.sssZ
 }
+
 
 function drawMarkers() {
     if (map && appState.markers && appState.latLng && appState.radius) {
