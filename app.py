@@ -34,7 +34,7 @@ def test_data():
 
 @app.route('/calculate_ri', methods=['GET'])
 def calculate_ri():
-    lat, lon = int(request.args.get('lat')), int(request.args.get('lon'))
+    lat, lng = int(request.args.get('lat')), int(request.args.get('lng'))
 
     with open('template_source_code/db_login.json', 'r') as file:
         db_credentials = json5.load(file)
@@ -43,6 +43,8 @@ def calculate_ri():
     cur = conn.cursor()
 
     # spatial query to get ri, noise, etc.
+    sql = "SELECT ri_data FROM gta_p2.ri_data WHERE ST_Contains(geom, ST_SetSRID(ST_MakePoint(%s, %s), 4326))"
+    cur.execute(sql, (lng, lat))
 
     data = cur.fetchall()
     conn.close()

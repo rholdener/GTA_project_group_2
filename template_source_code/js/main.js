@@ -11,6 +11,7 @@ let appState = {
 
 
 let wfs = 'https://baug-ikg-gis-01.ethz.ch:8443/geoserver/GTA24_lab06/wfs';
+let app_url = 'https://gta-project-group-2.vercel.app/';
 let timer = null;
 
 
@@ -229,7 +230,12 @@ function startTracking() {
         timer = setInterval(() => {
             if (appState.latLng && appState.time) {
                 let ri_value = 7;
-                // Berechnung des ri_value über /calculate_ri
+                
+                fetch(`${app_url}calculate_ri?lat=${appState.latLng.lat}&lng=${appState.latLng.lng}`)
+                .then(response => response.json())
+                .then(data => {
+                    ri_value = data.ri_value;
+                })
 
                 insertPoint(appState.latLng.lat, appState.latLng.lng, appState.time, appState.trip_id, ri_value);
             }
