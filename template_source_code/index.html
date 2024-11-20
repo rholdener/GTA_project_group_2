@@ -22,18 +22,25 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
             integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
             crossorigin="" defer></script>
-    <script src="js/main.js" defer></script>
+    <script src="js/main.js"></script>
 
 </head>
 
-<body onload="onload()">
-
-    <button id="start">start</button>
-    <button id="end">end</button>
+<body onload = "onload()">
+    <h1>Recreational Index</h1>
+    <button id="start">Start</button>
+    <button id="end" style="display: none;">End</button>    
 
     <div class="content">
         <div id="map"></div>
     </div>
+    <footer>
+        <div>
+            &copy; Gruppe 3<br>
+            Finn Bogatu, Rhéa Ehrle, Robin Holdener, Sara Bachmann <br>
+            IKG @ ETH Zürich
+        </div>
+    </footer>
 
 </body>
 </html>
