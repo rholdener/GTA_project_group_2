@@ -11,7 +11,10 @@ let appState = {
 
 
 let wfs = 'https://baug-ikg-gis-01.ethz.ch:8443/geoserver/GTA24_lab06/wfs';
+<<<<<<< HEAD
+=======
 let app_url = 'https://gta-project-group-2.vercel.app/';
+>>>>>>> 3e29579a8c18caeccf803d74cffa519879fff186
 let timer = null;
 
 
@@ -44,7 +47,6 @@ function drawMarkers() {
     }
 }
 
-
 /**
  * Function to be called whenever a new position is available.
  * @param position The new position.
@@ -62,7 +64,6 @@ function geoSuccess(position) {
         map.setView(appState.latLng);
     }
 }
-
 
 /**
  * Function to be called if there is an error raised by the Geolocation API.
@@ -110,8 +111,13 @@ function onload() {
     }).addTo(map);
     map.addLayer(appState.markers);
 	  // Button-Event-Handler registrieren
+<<<<<<< HEAD
+	  $("#start").click(startTracking);
+	  $("#end").click(stopTracking).prop('disabled', true);  // "End"-Button deaktiviert starten
+=======
 	$("#start").click(startTracking);
     $("#end").click(stopTracking).hide(); // End-Button zu Beginn verstecken
+>>>>>>> 3e29579a8c18caeccf803d74cffa519879fff186
 }
 
 
@@ -168,12 +174,84 @@ function insertPoint(lat, lng, time, trip_id, ri_value) {
 }
 
 
-function formatTime(timestamp) {
-    const date = new Date(timestamp);
-    return date.toISOString(); // Konvertiert in ISO 8601 Format: yyyy-MM-ddTHH:mm:ss.sssZ
+
+function fetchHighestTripId(callback) {
+    let query = `
+        <wfs:GetFeature 
+            service="WFS" 
+            version="1.1.0" 
+            outputFormat="application/json" 
+            xmlns:wfs="http://www.opengis.net/wfs" 
+            xmlns:ogc="http://www.opengis.net/ogc">
+            <wfs:Query typeName="GTA24_lab06:webapp_trajectory_point" srsName="EPSG:4326">
+                <ogc:SortBy>
+                    <ogc:SortProperty>
+                        <ogc:PropertyName>trip_id</ogc:PropertyName>
+                        <ogc:SortOrder>DESC</ogc:SortOrder>
+                    </ogc:SortProperty>
+                </ogc:SortBy>
+                <ogc:MaxFeatures>1</ogc:MaxFeatures>
+            </wfs:Query>
+        </wfs:GetFeature>
+    `;
+
+    $.ajax({
+        method: "POST",
+        url: wfs,
+        contentType: "text/xml",
+        dataType: "json",
+        data: query,
+        success: function (data) {
+            let highestTripId = 0;
+            if (data.features && data.features.length > 0) {
+                highestTripId = parseInt(data.features[0].properties.trip_id, 10);
+            }
+            callback(highestTripId + 1);
+        },
+        error: function (xhr, status, error) {
+            console.error("Fehler beim Abrufen der höchsten Trip-ID:", error);
+            callback(1); // Fallback auf 1, falls es keine Einträge gibt.
+        }
+    });
 }
 
 
+<<<<<<< HEAD
+// Tracking start
+function startTracking() {
+    if (timer) {
+        clearInterval(timer);
+    }
+
+    // Abrufen der nächsten Trip-ID
+    fetchHighestTripId(function (nextTripId) {
+        appState.trip_id = nextTripId; // Nächste aufsteigende Trip-ID
+
+        timer = setInterval(() => {
+            if (appState.latLng && appState.time) {
+
+				let ri_value = 7
+				//ri_value mit /calculate_ri berechnen
+
+                insertPoint(appState.latLng.lat, appState.latLng.lng, appState.time, appState.trip_id, ri_value);
+            }
+        }, 10000);  // Alle 10 Sekunden
+
+        $("#start").prop('disabled', true);
+        $("#end").prop('disabled', false);
+    });
+}
+
+// Tracking stop
+function stopTracking() {
+    clearInterval(timer);
+    timer = null;
+    $("#start").prop('disabled', false);
+    $("#end").prop('disabled', true);
+}
+
+
+=======
 
 
 function fetchHighestTripId(callback) {
@@ -256,3 +334,4 @@ function stopTracking() {
     $("#start").show(); // Zeigt den "Start"-Button
     $("#end").hide();   // Versteckt den "End"-Button
 }
+>>>>>>> 3e29579a8c18caeccf803d74cffa519879fff186
