@@ -37,7 +37,7 @@ function drawMarkers() {
             let endPointLat = appState.latLng.lat - radius * 3 * Math.cos(appState.heading);
             let endPointLng = appState.latLng.lng - radius * 3 * Math.sin(appState.heading);
 
-            LatLngsHeading = [
+            let LatLngsHeading = [
                 [startPointLat, startPointLng],
                 [endPointLat, endPointLng]
             ];
@@ -105,10 +105,13 @@ function onload() {
 
     map = L.map('map').setView([47.408375, 8.507669], 15);
     appState.markers = L.layerGroup();
+
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
+    
     map.addLayer(appState.markers);
+
 	  // Button-Event-Handler registrieren
 	$("#start").click(startTracking);
     $("#end").click(stopTracking).hide(); // End-Button zu Beginn verstecken
@@ -193,49 +196,6 @@ function insertPoint(lat, lng, time, trip_id, ri_value) {
 		  }
 	});
 }
-
-
-
-function fetchHighestTripId(callback) {
-    let query = `
-        <wfs:GetFeature 
-            service="WFS" 
-            version="1.1.0" 
-            outputFormat="application/json" 
-            xmlns:wfs="http://www.opengis.net/wfs" 
-            xmlns:ogc="http://www.opengis.net/ogc">
-            <wfs:Query typeName="GTA24_lab06:webapp_trajectory_point" srsName="EPSG:4326">
-                <ogc:SortBy>
-                    <ogc:SortProperty>
-                        <ogc:PropertyName>trip_id</ogc:PropertyName>
-                        <ogc:SortOrder>DESC</ogc:SortOrder>
-                    </ogc:SortProperty>
-                </ogc:SortBy>
-                <ogc:MaxFeatures>1</ogc:MaxFeatures>
-            </wfs:Query>
-        </wfs:GetFeature>
-    `;
-
-    $.ajax({
-        method: "POST",
-        url: wfs,
-        contentType: "text/xml",
-        dataType: "json",
-        data: query,
-        success: function (data) {
-            let highestTripId = 0;
-            if (data.features && data.features.length > 0) {
-                highestTripId = parseInt(data.features[0].properties.trip_id, 10);
-            }
-            callback(highestTripId + 1);
-        },
-        error: function (xhr, status, error) {
-            console.error("Fehler beim Abrufen der höchsten Trip-ID:", error);
-            callback(1); // Fallback auf 1, falls es keine Einträge gibt.
-        }
-    });
-}
-
 
 
 
