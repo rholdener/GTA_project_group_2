@@ -4,10 +4,10 @@ let appState = {
     latLng: null,
     radius: null,
     heading: null,
-	name: null,
 	time: null,
 	trip_id: null,
-    pointHistory: []
+    pointHistory: [],
+    points: null,
 };
 
 
@@ -105,12 +105,14 @@ function onload() {
 
     map = L.map('map').setView([47.408375, 8.507669], 15);
     appState.markers = L.layerGroup();
+    appState.points = L.layerGroup();
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
     
     map.addLayer(appState.markers);
+    map.addLayer(appState.points); 
 
 	  // Button-Event-Handler registrieren
 	$("#start").click(startTracking);
@@ -159,13 +161,13 @@ function insertPoint(lat, lng, time, trip_id, ri_value) {
 			//Success feedback
 			console.log("Success from AJAX, data sent to Geoserver");
 
-            let marker = L.circleMarker([lat, lng], {
+            let point = L.circleMarker([lat, lng], {
                 radius: 2,
                 color: "black",
                 fillColor: "black",
                 fillOpacity: 0.8
             }).bindPopup(`Trip ID: ${trip_id}<br>RI Value: ${ri_value}<br>Time: ${time}`);
-            appState.markers.addLayer(marker);
+            appState.points.addLayer(point);
 
             
 
@@ -178,7 +180,7 @@ function insertPoint(lat, lng, time, trip_id, ri_value) {
             ];
 
             // Polyline (Linie) zwischen den Punkten zeichnen
-            let polyline = L.polyline(latLngs, { color: 'red' }).addTo(appState.markers);
+            let polyline = L.polyline(latLngs, { color: 'black' }).addTo(appState.points);
         }
 
         // Den aktuellen Punkt zur Historie hinzufügen
@@ -258,6 +260,7 @@ function startTracking() {
                 .then(response => response.json())
                 .then(data => {
                     ri_value = data.ri_value;
+                    insertPoint(appState.latLng.lat, appState.latLng.lng, appState.time, appState.trip_id, ri_value);
                 })
 
                 insertPoint(appState.latLng.lat, appState.latLng.lng, appState.time, appState.trip_id, ri_value);
