@@ -244,6 +244,11 @@ function fetchHighestTripId(callback) {
 
 // Tracking start
 function startTracking() {
+    
+    let ri_value = 7;
+    
+    insertPoint(appState.latLng.lat, appState.latLng.lng, appState.time, appState.trip_id, ri_value);
+
     if (timer) {
         clearInterval(timer);
     }
@@ -254,14 +259,12 @@ function startTracking() {
 
         timer = setInterval(() => {
             if (appState.latLng && appState.time) {
-                let ri_value = 7;
                 
-                fetch(`${app_url}calculate_ri?lat=${appState.latLng.lat}&lng=${appState.latLng.lng}`)
-                .then(response => response.json())
-                .then(data => {
-                    ri_value = data.ri_value;
-                    insertPoint(appState.latLng.lat, appState.latLng.lng, appState.time, appState.trip_id, ri_value);
-                })
+                //fetch(`${app_url}calculate_ri?lat=${appState.latLng.lat}&lng=${appState.latLng.lng}`)
+                //.then(response => response.json())
+                //.then(data => {
+                   // ri_value = data.ri_value;
+                //})
 
                 insertPoint(appState.latLng.lat, appState.latLng.lng, appState.time, appState.trip_id, ri_value);
             }
@@ -277,6 +280,8 @@ function startTracking() {
 function stopTracking() {
     clearInterval(timer);
     timer = null;
+
+    // hier neuen trip in webapp_trip erstellen
 
     // Buttons umschalten
     $("#start").show(); // Zeigt den "Start"-Button
