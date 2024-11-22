@@ -284,6 +284,7 @@ function stopTracking() {
     clearInterval(timer);
     timer = null;
 
+    //fetch aus tabelle, um alle points vom gleichen trip darzustellen, verbinden und nach ri_value einfärben sowie mean_ri berechnen
 
     // Buttons umschalten
     $("#start").show(); // Zeigt den "Start"-Button
