@@ -245,8 +245,7 @@ function fetchHighestTripId(callback) {
 // Tracking start
 function startTracking() {
     
-    let ri_value = 7;
-    
+    let ri_value = 7; //hier auch ri_value fetchen
     insertPoint(appState.latLng.lat, appState.latLng.lng, appState.time, appState.trip_id, ri_value);
 
     if (timer) {
@@ -278,10 +277,13 @@ function startTracking() {
 
 // Tracking stop
 function stopTracking() {
+
+    let ri_value = 7; //hier auch ri_value fetchen
+    insertPoint(appState.latLng.lat, appState.latLng.lng, appState.time, appState.trip_id, ri_value);
+    
     clearInterval(timer);
     timer = null;
 
-    // hier neuen trip in webapp_trip erstellen
 
     // Buttons umschalten
     $("#start").show(); // Zeigt den "Start"-Button
