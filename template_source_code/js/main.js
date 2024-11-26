@@ -187,8 +187,6 @@ function insertPoint(lat, lng, time, trip_id, ri_value) {
         appState.pointHistory.push({ lat: lat, lng: lng });
     },
 
-
-
 		error: function (xhr, errorThrown) {
 			//Error handling
 			console.log("Error from AJAX");
