@@ -326,7 +326,7 @@ function startTracking() {
 
 // Tracking stop
 function stopTracking() {
-    
+
     let ri_value = 7; // hier RI-Wert anpassen oder berechnen
 
     // Letzten Punkt einfügen und nach Abschluss die Linie zeichnen
@@ -334,6 +334,11 @@ function stopTracking() {
         .then(() => {
             // drawColoredLine erst nach erfolgreichem Insert aufrufen
             drawColoredLine();
+
+            // Berechnung des Durchschnitts (mean_ri)
+            if (appState.pointHistory.length > 0) {
+                let mean_ri = appState.pointHistory.reduce((sum, point) => sum + (point.ri_value || 0), 0) / appState.pointHistory.length;
+            }
 
             // Buttons umschalten
             $("#start").show(); // Zeigt den "Start"-Button
