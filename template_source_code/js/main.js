@@ -256,6 +256,10 @@ function startTracking() {
     fetchHighestTripId(function (nextTripId) {
         appState.trip_id = nextTripId; // Nächste aufsteigende Trip-ID
 
+        if (map && appState.latLng) {
+            map.setView(appState.latLng, 15); // Fokussiere und zoome auf Level 15
+        }
+
         timer = setInterval(() => {
             if (appState.latLng && appState.time) {
                 
