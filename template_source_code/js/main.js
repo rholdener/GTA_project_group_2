@@ -289,7 +289,8 @@ function fetchHighestTripId(callback) {
 // Tracking start
 function startTracking() {
     
-    let ri_value = 7; //hier auch ri_value fetchen
+    let ri_value = 7; // hier RI-Wert anpassen oder berechnen
+
     insertPoint(appState.latLng.lat, appState.latLng.lng, appState.time, appState.trip_id, ri_value);
 
     if (timer) {
@@ -325,6 +326,7 @@ function startTracking() {
 
 // Tracking stop
 function stopTracking() {
+    
     let ri_value = 7; // hier RI-Wert anpassen oder berechnen
 
     // Letzten Punkt einfügen und nach Abschluss die Linie zeichnen

@@ -87,6 +87,9 @@ h1 {
 }
 
 footer {
-    padding-top: 2%;
-    padding-bottom: 2%;
+    padding-top: 1vh;
+    padding-bottom: 1vh;
+    font-size: 0.8em;
+    min-height: 2vh;
+    height: auto;
 }
