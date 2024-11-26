@@ -120,9 +120,51 @@ function onload() {
 }
 
 
+function getColorByRI(riValue) {
+    if (riValue < 2) return 'blue';   // Sehr gut
+    if (riValue < 4) return 'green';  // Gut
+    if (riValue < 6) return 'yellow'; // Mittel
+    if (riValue < 8) return 'orange'; // Schlecht
+    return 'red';                     // Sehr schlecht
+}
+
+function drawColoredLine() {
+    if (appState.pointHistory.length < 2) {
+        return; // Es gibt keine Punkte, zwischen denen eine Linie gezeichnet werden kann
+    }
+
+    // Alte Layer entfernen, falls nötig
+    appState.points.clearLayers();
+
+    for (let i = 0; i < appState.pointHistory.length - 1; i++) {
+        let currentPoint = appState.pointHistory[i];
+        let nextPoint = appState.pointHistory[i + 1];
+        
+        let riValue = currentPoint.ri_value || 5; // Beispielhaft, sollte aus den Daten geladen werden
+
+        let polyline = L.polyline(
+            [
+                [currentPoint.lat, currentPoint.lng],
+                [nextPoint.lat, nextPoint.lng]
+            ],
+            {
+                color: getColorByRI(riValue),
+                weight: 5, // Linienbreite
+                opacity: 0.8
+            }
+        );
+
+        appState.points.addLayer(polyline);
+    }
+
+    // Den Layer der Karte hinzufügen
+    map.addLayer(appState.points);
+}
+
 // INSERT point
 // REF: https://github.com/Georepublic/leaflet-wfs/blob/master/index.html#L201
 function insertPoint(lat, lng, time, trip_id, ri_value) {
+    return new Promise((resolve, reject) => {
 	let postData = `<wfs:Transaction
 			  service="WFS"
 			  version="1.0.0"
@@ -184,7 +226,10 @@ function insertPoint(lat, lng, time, trip_id, ri_value) {
         }
 
         // Den aktuellen Punkt zur Historie hinzufügen
-        appState.pointHistory.push({ lat: lat, lng: lng });
+        appState.pointHistory.push({ lat: lat, lng: lng, ri_value: ri_value });
+        resolve(); // Promise auflösen
+
+        
     },
 
 		error: function (xhr, errorThrown) {
@@ -195,6 +240,7 @@ function insertPoint(lat, lng, time, trip_id, ri_value) {
 			console.log("Response text: ", xhr.responseText);  
 		  }
 	});
+});
 }
 
 
@@ -279,16 +325,22 @@ function startTracking() {
 
 // Tracking stop
 function stopTracking() {
+    let ri_value = 7; // hier RI-Wert anpassen oder berechnen
 
-    let ri_value = 7; //hier auch ri_value fetchen
-    insertPoint(appState.latLng.lat, appState.latLng.lng, appState.time, appState.trip_id, ri_value);
-    
+    // Letzten Punkt einfügen und nach Abschluss die Linie zeichnen
+    insertPoint(appState.latLng.lat, appState.latLng.lng, appState.time, appState.trip_id, ri_value)
+        .then(() => {
+            // drawColoredLine erst nach erfolgreichem Insert aufrufen
+            drawColoredLine();
+
+            // Buttons umschalten
+            $("#start").show(); // Zeigt den "Start"-Button
+            $("#end").hide();   // Versteckt den "End"-Button
+        })
+        .catch(error => {
+            console.error("Fehler beim Stop-Tracking:", error);
+        });
+
     clearInterval(timer);
     timer = null;
-
-    //fetch aus tabelle, um alle points vom gleichen trip darzustellen, verbinden und nach ri_value einfärben sowie mean_ri berechnen
-
-    // Buttons umschalten
-    $("#start").show(); // Zeigt den "Start"-Button
-    $("#end").hide();   // Versteckt den "End"-Button
 }
