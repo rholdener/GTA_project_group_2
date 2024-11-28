@@ -322,6 +322,7 @@ function startTracking() {
         // Buttons umschalten
         $("#start").hide(); // Versteckt den "Start"-Button
         $("#end").show();   // Zeigt den "End"-Button
+        $("#mean_ri").hide();
     });
 }
 
