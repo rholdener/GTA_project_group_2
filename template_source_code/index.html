@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
     <title>Web-App GTA</title>
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -27,9 +28,15 @@
 
 <body onload = "onload()">
     <h1>Recreational Index</h1>
-    <button id="start">Start</button>
-    <button id="end" style="display: none;">End</button>    
-    <button id="mean_ri" onclick="return false;">Mean RI: <span id= "mean_ri_value">0</span></button>
+
+    <div id="buttons-container">
+        <button id="start">Start</button>
+        <div id="mean_ri">
+            <span class="mean-text">Mean RI</span>
+            <span id="mean_ri_value" class="mean-value">5.0</span>
+        </div>
+        <button id="end">End</button>
+    </div>
     
     <div class="content">
         <div id="map"></div>

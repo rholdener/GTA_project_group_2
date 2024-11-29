@@ -7,6 +7,7 @@ let appState = {
 	time: null,
 	trip_id: null,
     points: null,
+    color_points: null,
     pointHistory: [],
 };
 
@@ -107,20 +108,21 @@ function onload() {
     map = L.map('map').setView([46.82, 8.22], 8);
     appState.markers = L.layerGroup();
     appState.points = L.layerGroup();
+    appState.color_points = L.layerGroup(); 
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
     
     map.addLayer(appState.markers);
-    map.addLayer(appState.points); 
+    map.addLayer(appState.points);
+    map.addLayer(appState.color_points);  
 
 	  // Button-Event-Handler registrieren
 	$("#start").click(startTracking);
     $("#end").click(stopTracking).hide(); // End-Button zu Beginn verstecken
     $("#mean_ri").hide();
 }
-
 
 function getColorByRI(riValue) {
     if (riValue < 2) return 'blue';   // Sehr gut
@@ -159,7 +161,7 @@ function drawColoredLine() {
         return; // Es gibt keine Punkte, zwischen denen eine Linie gezeichnet werden kann
     }
 
-    appState.points.clearLayers(); // Alte Layer entfernen
+    appState.color_points.clearLayers(); // Alte farbige Linien entfernen
 
     for (let i = 0; i < appState.pointHistory.length - 1; i++) {
         let currentPoint = appState.pointHistory[i];
@@ -187,7 +189,7 @@ function drawColoredLine() {
                     [segmentLatLngs[j - 1], segmentLatLngs[j]],
                     { color: color, weight: 5, opacity: 0.8 }
                 );
-                appState.points.addLayer(segmentLine);
+                appState.color_points.addLayer(segmentLine);
             }
         }
 
@@ -198,7 +200,7 @@ function drawColoredLine() {
             fillColor: currentColor,
             fillOpacity: 0.8
         }).bindPopup(`RI: ${currentPoint.ri_value}`);
-        appState.points.addLayer(startPointMarker);
+        appState.color_points.addLayer(startPointMarker);
 
         // Markiere den Endpunkt (als separate Markierung oder Teil der nächsten Iteration)
         if (i === appState.pointHistory.length - 2) {
@@ -208,11 +210,11 @@ function drawColoredLine() {
                 fillColor: nextColor,
                 fillOpacity: 0.8
             }).bindPopup(`RI: ${nextPoint.ri_value}`);
-            appState.points.addLayer(endPointMarker);
+            appState.color_points.addLayer(endPointMarker);
         }
     }
 
-    map.addLayer(appState.points); // Den Layer der Karte hinzufügen
+    map.addLayer(appState.color_points); // Den Layer der Karte hinzufügen
 }
 
 // INSERT point
@@ -265,9 +267,7 @@ function insertPoint(lat, lng, time, trip_id, ri_value) {
             }).bindPopup(`Trip ID: ${trip_id}<br>RI Value: ${ri_value}<br>Time: ${time}`);
             appState.points.addLayer(point);
 
-            
-
-           // Wenn es bereits einen vorherigen Punkt gibt, zeichnen wir eine Linie
+           // Zeichne schwarze Linie zwischen den Punkten
            if (appState.pointHistory.length > 0) {
             let lastPoint = appState.pointHistory[appState.pointHistory.length - 1];
             let latLngs = [
@@ -275,27 +275,25 @@ function insertPoint(lat, lng, time, trip_id, ri_value) {
                 [lat, lng]                       // Neuer Punkt
             ];
 
-            // Polyline (Linie) zwischen den Punkten zeichnen
+            // Polyline (schwarze Linie) zwischen den Punkten
             let polyline = L.polyline(latLngs, { color: 'black' }).addTo(appState.points);
         }
 
         // Den aktuellen Punkt zur Historie hinzufügen
         appState.pointHistory.push({ lat: lat, lng: lng, ri_value: ri_value });
         resolve(); // Promise auflösen
-
-        
     },
 
-		error: function (xhr, errorThrown) {
-			//Error handling
-			console.log("Error from AJAX");
-			console.log(xhr.status);
-			console.log(errorThrown);
-			console.log("Response text: ", xhr.responseText);  
-		  }
-	});
+    error: function (xhr, errorThrown) {
+        console.log("Error from AJAX");
+        console.log(xhr.status);
+        console.log(errorThrown);
+        console.log("Response text: ", xhr.responseText);  
+    }
+});
 });
 }
+
 
 
 
@@ -342,6 +340,8 @@ function fetchHighestTripId(callback) {
 
 // Tracking start
 function startTracking() {
+
+    appState.pointHistory = [];
     
     if (!appState.latLng) {
         // Fehlernachricht anzeigen
