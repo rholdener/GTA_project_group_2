@@ -60,7 +60,8 @@ function geoSuccess(position) {
 
 
     if (map) {
-        map.setView(appState.latLng);
+        let desiredZoom = 15; 
+        map.setView(appState.latLng, desiredZoom); 
     }
 }
 
