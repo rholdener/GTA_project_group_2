@@ -6,8 +6,8 @@ let appState = {
     heading: null,
 	time: null,
 	trip_id: null,
-    pointHistory: [],
     points: null,
+    pointHistory: [],
 };
 
 
@@ -375,7 +375,7 @@ function startTracking() {
                 //.then(data => {
                    // ri_value = data.ri_value;
                 //})
-
+                ri_value += 1;
                 insertPoint(appState.latLng.lat, appState.latLng.lng, appState.time, appState.trip_id, ri_value);
             }
         }, 10000);  // Alle 10 Sekunden
