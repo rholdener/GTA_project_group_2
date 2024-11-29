@@ -129,37 +129,89 @@ function getColorByRI(riValue) {
     return 'red';                     // Sehr schlecht
 }
 
+function interpolateColor(color1, color2, factor) {
+    // Interpoliert zwei Farben, z.B. #FF0000 und #00FF00
+    const hexToRgb = hex => {
+        const bigint = parseInt(hex.slice(1), 16);
+        return [(bigint >> 16) & 255, (bigint >> 8) & 255, bigint & 255];
+    };
+
+    const rgbToHex = ([r, g, b]) => {
+        return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+    };
+
+    const c1 = hexToRgb(color1);
+    const c2 = hexToRgb(color2);
+
+    const result = [
+        Math.round(c1[0] + factor * (c2[0] - c1[0])),
+        Math.round(c1[1] + factor * (c2[1] - c1[1])),
+        Math.round(c1[2] + factor * (c2[2] - c1[2]))
+    ];
+
+    return rgbToHex(result);
+}
+
+
 function drawColoredLine() {
     if (appState.pointHistory.length < 2) {
         return; // Es gibt keine Punkte, zwischen denen eine Linie gezeichnet werden kann
     }
 
-    // Alte Layer entfernen, falls nötig
-    appState.points.clearLayers();
+    appState.points.clearLayers(); // Alte Layer entfernen
 
     for (let i = 0; i < appState.pointHistory.length - 1; i++) {
         let currentPoint = appState.pointHistory[i];
         let nextPoint = appState.pointHistory[i + 1];
-        
-        let riValue = currentPoint.ri_value || 5; // Beispielhaft, sollte aus den Daten geladen werden
 
-        let polyline = L.polyline(
-            [
-                [currentPoint.lat, currentPoint.lng],
-                [nextPoint.lat, nextPoint.lng]
-            ],
-            {
-                color: getColorByRI(riValue),
-                weight: 5, // Linienbreite
-                opacity: 0.8
+        // Berechne Farben der Punkte
+        let currentColor = getColorByRI(currentPoint.ri_value || 5);
+        let nextColor = getColorByRI(nextPoint.ri_value || 5);
+
+        // Anzahl der Segmente für die Interpolation (z.B. 10 für feineren Verlauf)
+        let segments = 10;
+
+        let segmentLatLngs = [];
+        for (let j = 0; j <= segments; j++) {
+            let factor = j / segments; // Interpolationsfaktor
+            let lat = currentPoint.lat + factor * (nextPoint.lat - currentPoint.lat);
+            let lng = currentPoint.lng + factor * (nextPoint.lng - currentPoint.lng);
+            segmentLatLngs.push([lat, lng]);
+
+            if (j > 0) {
+                let color = interpolateColor(currentColor, nextColor, factor);
+
+                // Zeichne die Linie für diesen Abschnitt
+                let segmentLine = L.polyline(
+                    [segmentLatLngs[j - 1], segmentLatLngs[j]],
+                    { color: color, weight: 5, opacity: 0.8 }
+                );
+                appState.points.addLayer(segmentLine);
             }
-        );
+        }
 
-        appState.points.addLayer(polyline);
+        // Markiere den Startpunkt mit seiner Farbe
+        let startPointMarker = L.circleMarker([currentPoint.lat, currentPoint.lng], {
+            radius: 2,
+            color: currentColor,
+            fillColor: currentColor,
+            fillOpacity: 0.8
+        }).bindPopup(`RI: ${currentPoint.ri_value}`);
+        appState.points.addLayer(startPointMarker);
+
+        // Markiere den Endpunkt (als separate Markierung oder Teil der nächsten Iteration)
+        if (i === appState.pointHistory.length - 2) {
+            let endPointMarker = L.circleMarker([nextPoint.lat, nextPoint.lng], {
+                radius: 2,
+                color: nextColor,
+                fillColor: nextColor,
+                fillOpacity: 0.8
+            }).bindPopup(`RI: ${nextPoint.ri_value}`);
+            appState.points.addLayer(endPointMarker);
+        }
     }
 
-    // Den Layer der Karte hinzufügen
-    map.addLayer(appState.points);
+    map.addLayer(appState.points); // Den Layer der Karte hinzufügen
 }
 
 // INSERT point
@@ -290,6 +342,14 @@ function fetchHighestTripId(callback) {
 // Tracking start
 function startTracking() {
     
+    if (!appState.latLng) {
+        // Fehlernachricht anzeigen
+        let errMsg = $("#error-messages"); // Stelle sicher, dass dieses Element existiert
+        errMsg.text("Bitte warten Sie, bis Ihre Position geladen wurde.");
+        errMsg.show();
+        return; // Funktion abbrechen
+    }
+
     let ri_value = 7; // hier RI-Wert anpassen oder berechnen
 
     insertPoint(appState.latLng.lat, appState.latLng.lng, appState.time, appState.trip_id, ri_value);
