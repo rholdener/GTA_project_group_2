@@ -294,9 +294,6 @@ function insertPoint(lat, lng, time, trip_id, ri_value) {
 });
 }
 
-
-
-
 function fetchHighestTripId(callback) {
     let query = `
         <wfs:GetFeature 
@@ -375,7 +372,7 @@ function startTracking() {
                 //.then(data => {
                    // ri_value = data.ri_value;
                 //})
-                ri_value += 1;
+                //ri_value += 1;
                 insertPoint(appState.latLng.lat, appState.latLng.lng, appState.time, appState.trip_id, ri_value);
             }
         }, 10000);  // Alle 10 Sekunden
