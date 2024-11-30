@@ -10,6 +10,7 @@ let appState = {
     color_points: null,
     pointHistory: [],
     currentZoom: 8,
+    isTracking: false,
 };
 
 
@@ -58,10 +59,10 @@ function geoSuccess(position) {
     appState.latLng = L.latLng(lat, lng);
     appState.radius = position.coords.accuracy / 2;
     appState.time = formatTime(Date.now());
-	drawMarkers();
+    drawMarkers();
 
-
-    if (map) {
+    // Nur die Karte aktualisieren, wenn das Tracking aktiv ist
+    if (appState.isTracking && map) {
         map.setView(appState.latLng, appState.currentZoom); 
     }
 }
@@ -336,6 +337,7 @@ function fetchHighestTripId(callback) {
 function startTracking() {
 
     appState.pointHistory = [];
+    appState.isTracking = true;
     
     if (!appState.latLng) {
         // Fehlernachricht anzeigen
@@ -409,4 +411,5 @@ function stopTracking() {
 
     clearInterval(timer);
     timer = null;
+    appState.isTracking = false;
 }
