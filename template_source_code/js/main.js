@@ -9,6 +9,7 @@ let appState = {
     points: null,
     color_points: null,
     pointHistory: [],
+    currentZoom: 8,
 };
 
 
@@ -61,8 +62,7 @@ function geoSuccess(position) {
 
 
     if (map) {
-        let desiredZoom = 15; 
-        map.setView(appState.latLng, desiredZoom); 
+        map.setView(appState.latLng, appState.currentZoom); 
     }
 }
 
@@ -116,45 +116,33 @@ function onload() {
     
     map.addLayer(appState.markers);
     map.addLayer(appState.points);
-    map.addLayer(appState.color_points);  
+    map.addLayer(appState.color_points); 
 
-	  // Button-Event-Handler registrieren
+    map.on('zoomend', function () {
+        appState.currentZoom = map.getZoom(); // Aktuellen Zoom speichern
+    });
+
+	// Button-Event-Handler registrieren
 	$("#start").click(startTracking);
     $("#end").click(stopTracking).hide(); // End-Button zu Beginn verstecken
     $("#mean_ri").hide();
 }
 
 function getColorByRI(riValue) {
-    if (riValue < 2) return 'blue';   // Sehr gut
-    if (riValue < 4) return 'green';  // Gut
-    if (riValue < 6) return 'yellow'; // Mittel
-    if (riValue < 8) return 'orange'; // Schlecht
-    return 'red';                     // Sehr schlecht
+    if (riValue < 2) return [0, 0, 255];   // Blau
+    if (riValue < 4) return [0, 128, 0];   // Grün
+    if (riValue < 6) return [255, 255, 0]; // Gelb
+    if (riValue < 8) return [255, 165, 0]; // Orange
+    return [255, 0, 0];                    // Rot
 }
 
-function interpolateColor(color1, color2, factor) {
-    // Interpoliert zwei Farben, z.B. #FF0000 und #00FF00
-    const hexToRgb = hex => {
-        const bigint = parseInt(hex.slice(1), 16);
-        return [(bigint >> 16) & 255, (bigint >> 8) & 255, bigint & 255];
-    };
+function interpolateColor(rgb1, rgb2, factor) {
+    const r = Math.round(rgb1[0] + factor * (rgb2[0] - rgb1[0]));
+    const g = Math.round(rgb1[1] + factor * (rgb2[1] - rgb1[1]));
+    const b = Math.round(rgb1[2] + factor * (rgb2[2] - rgb1[2]));
 
-    const rgbToHex = ([r, g, b]) => {
-        return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
-    };
-
-    const c1 = hexToRgb(color1);
-    const c2 = hexToRgb(color2);
-
-    const result = [
-        Math.round(c1[0] + factor * (c2[0] - c1[0])),
-        Math.round(c1[1] + factor * (c2[1] - c1[1])),
-        Math.round(c1[2] + factor * (c2[2] - c1[2]))
-    ];
-
-    return rgbToHex(result);
+    return `rgb(${r}, ${g}, ${b})`; // Gib die interpolierte Farbe als RGB-String zurück
 }
-
 
 function drawColoredLine() {
     if (appState.pointHistory.length < 2) {
@@ -162,14 +150,21 @@ function drawColoredLine() {
     }
 
     appState.color_points.clearLayers(); // Alte farbige Linien entfernen
+    appState.points.clearLayers();
 
     for (let i = 0; i < appState.pointHistory.length - 1; i++) {
         let currentPoint = appState.pointHistory[i];
         let nextPoint = appState.pointHistory[i + 1];
 
-        // Berechne Farben der Punkte
+        console.log("RI Value:", currentPoint.ri_value);
+        console.log("RI Value:", nextPoint.ri_value);
+
+        // Berechne Farben der Punkte als RGB-Werte
         let currentColor = getColorByRI(currentPoint.ri_value || 5);
         let nextColor = getColorByRI(nextPoint.ri_value || 5);
+
+        console.log("color:", currentColor);
+        console.log("color:", nextColor);
 
         // Anzahl der Segmente für die Interpolation (z.B. 10 für feineren Verlauf)
         let segments = 10;
@@ -183,6 +178,7 @@ function drawColoredLine() {
 
             if (j > 0) {
                 let color = interpolateColor(currentColor, nextColor, factor);
+                console.log("color:", color);
 
                 // Zeichne die Linie für diesen Abschnitt
                 let segmentLine = L.polyline(
@@ -216,6 +212,7 @@ function drawColoredLine() {
 
     map.addLayer(appState.color_points); // Den Layer der Karte hinzufügen
 }
+
 
 // INSERT point
 // REF: https://github.com/Georepublic/leaflet-wfs/blob/master/index.html#L201
@@ -372,7 +369,7 @@ function startTracking() {
                 //.then(data => {
                    // ri_value = data.ri_value;
                 //})
-                //ri_value += 1;
+                ri_value += 1;
                 insertPoint(appState.latLng.lat, appState.latLng.lng, appState.time, appState.trip_id, ri_value);
             }
         }, 10000);  // Alle 10 Sekunden
