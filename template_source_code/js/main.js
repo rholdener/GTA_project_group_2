@@ -157,15 +157,15 @@ function drawColoredLine() {
         let currentPoint = appState.pointHistory[i];
         let nextPoint = appState.pointHistory[i + 1];
 
-        console.log("RI Value:", currentPoint.ri_value);
-        console.log("RI Value:", nextPoint.ri_value);
+        //console.log("RI Value:", currentPoint.ri_value);
+        //console.log("RI Value:", nextPoint.ri_value);
 
         // Berechne Farben der Punkte als RGB-Werte
         let currentColor = getColorByRI(currentPoint.ri_value || 5);
         let nextColor = getColorByRI(nextPoint.ri_value || 5);
 
-        console.log("color:", currentColor);
-        console.log("color:", nextColor);
+        //console.log("color:", currentColor);
+        //console.log("color:", nextColor);
 
         // Anzahl der Segmente für die Interpolation (z.B. 10 für feineren Verlauf)
         let segments = 10;
@@ -179,7 +179,7 @@ function drawColoredLine() {
 
             if (j > 0) {
                 let color = interpolateColor(currentColor, nextColor, factor);
-                console.log("color:", color);
+                //console.log("color:", color);
 
                 // Zeichne die Linie für diesen Abschnitt
                 let segmentLine = L.polyline(
@@ -336,32 +336,32 @@ function fetchHighestTripId(callback) {
 // Tracking start
 function startTracking() {
 
-    appState.pointHistory = [];
-    appState.isTracking = true;
-    
-    if (!appState.latLng) {
-        // Fehlernachricht anzeigen
-        let errMsg = $("#error-messages"); // Stelle sicher, dass dieses Element existiert
-        errMsg.text("Bitte warten Sie, bis Ihre Position geladen wurde.");
-        errMsg.show();
-        return; // Funktion abbrechen
-    }
-
-    let ri_value = 7; // hier RI-Wert anpassen oder berechnen
-
-    insertPoint(appState.latLng.lat, appState.latLng.lng, appState.time, appState.trip_id, ri_value);
-
-    if (timer) {
-        clearInterval(timer);
-    }
-
     // Abrufen der nächsten Trip-ID
     fetchHighestTripId(function (nextTripId) {
         appState.trip_id = nextTripId; // Nächste aufsteigende Trip-ID
 
+        appState.pointHistory = [];
+        appState.isTracking = true;
+    
+        if (!appState.latLng) {
+            // Fehlernachricht anzeigen
+            let errMsg = $("#error-messages"); // Stelle sicher, dass dieses Element existiert
+            errMsg.text("Bitte warten Sie, bis Ihre Position geladen wurde.");
+            errMsg.show();
+            return; // Funktion abbrechen
+        }
+        
         if (map && appState.latLng) {
             map.setView(appState.latLng, 15); // Fokussiere und zoome auf Level 15
         }
+
+        let ri_value = 7; // hier RI-Wert anpassen oder berechnen
+
+        insertPoint(appState.latLng.lat, appState.latLng.lng, appState.time, appState.trip_id, ri_value);
+
+        if (timer) {
+            clearInterval(timer);
+            }
 
         timer = setInterval(() => {
             if (appState.latLng && appState.time) {
