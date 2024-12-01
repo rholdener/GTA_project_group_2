@@ -32,6 +32,23 @@ def test_data():
 
     return jsonify(data), 200
 
+@app.route('/point_history', methods=['GET'])
+def point_history():
+    trip_id = request.args.get('trip_id')
+
+    with open('db_login.json', 'r') as file:
+        db_credentials = json5.load(file)
+    
+    conn = psycopg2.connect(**db_credentials)
+    cur = conn.cursor()
+
+    cur.execute("SELECT * FROM gta_p2.webapp_trajectory_point WHERE trip_id = %s", (trip_id,))
+    data = cur.fetchall()
+
+    conn.close()
+
+    return jsonify(data), 200
+
 @app.route('/calculate_ri', methods=['GET'])
 def calculate_ri():
     lat, lng = float(request.args.get('lat')), float(request.args.get('lng'))
