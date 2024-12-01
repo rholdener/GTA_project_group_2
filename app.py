@@ -6,7 +6,7 @@ import json5
 import random
 
 app = Flask(__name__)
-CORS(app, origins=["*", "null"])  # allowing any origin as well as localhost (null)
+CORS(app, origins=["*", "null", "https://air-pollution-gta.vercel.app"])  # allowing any origin as well as localhost (null)
 
 # Endpoint to receive and store location data
 @app.route('/test_deploy', methods=['GET'])
