@@ -77,9 +77,9 @@ def calculate_ri():
     conn.close()
 
     #For now random values are returned
-    r_i = random.randint(1, 50)
-    noise = random.randint(1, 50)
-    distance = random.randint(1, 50)
+    r_i = random.randint(1, 10)
+    noise = random.randint(1, 10)
+    distance = random.randint(1, 10)
 
     data = {
         'ri': r_i,
