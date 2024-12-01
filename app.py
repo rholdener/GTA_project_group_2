@@ -18,7 +18,7 @@ def home():
 
 @app.route('/test_data', methods=['GET'])
 def test_data():
-    with open('template_source_code/db_login.json', 'r') as file:
+    with open('db_login.json', 'r') as file:
         db_credentials = json5.load(file)
     
     conn = psycopg2.connect(**db_credentials)
@@ -36,7 +36,7 @@ def test_data():
 def calculate_ri():
     lat, lng = float(request.args.get('lat')), float(request.args.get('lng'))
 
-    with open('template_source_code/db_login.json', 'r') as file:
+    with open('db_login.json', 'r') as file:
         db_credentials = json5.load(file)
     
     conn = psycopg2.connect(**db_credentials)
