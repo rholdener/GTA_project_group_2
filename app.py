@@ -3,6 +3,7 @@ from flask_cors import CORS, cross_origin  # needs to be installed via pip insta
 import psycopg2
 from psycopg2.extensions import AsIs
 import json5
+import random
 
 app = Flask(__name__)
 CORS(app, origins=["*", "null"])  # allowing any origin as well as localhost (null)
@@ -53,6 +54,7 @@ def point_history():
 def calculate_ri():
     lat, lng = float(request.args.get('lat')), float(request.args.get('lng'))
 
+
     with open('db_login.json', 'r') as file:
         db_credentials = json5.load(file)
     
@@ -73,6 +75,11 @@ def calculate_ri():
     distance = cur.fetchall()
 
     conn.close()
+
+    #For now random values are returned
+    r_i = random.randint(1, 50)
+    noise = random.randint(1, 50)
+    distance = random.randint(1, 50)
 
     data = {
         'ri': r_i,
