@@ -52,6 +52,7 @@ def point_history():
 
 @app.route('/calculate_ri', methods=['GET'])
 def calculate_ri():
+    """
     lat, lng = float(request.args.get('lat')), float(request.args.get('lng'))
 
 
@@ -62,6 +63,7 @@ def calculate_ri():
     cur = conn.cursor()
 
     # spatial query to get ri, noise, etc.
+    
     sql = "SELECT ri_data FROM gta_p2.data_polygons WHERE ST_Contains(geometry, ST_SetSRID(ST_MakePoint(%s, %s), 4326))"
     cur.execute(sql, (lng, lat))
     r_i = cur.fetchall()
@@ -75,6 +77,7 @@ def calculate_ri():
     distance = cur.fetchall()
 
     conn.close()
+    """
 
     #For now random values are returned
     r_i = random.randint(1, 10)
