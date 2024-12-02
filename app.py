@@ -6,7 +6,7 @@ import json5
 import random
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "https://air-pollution-gta.vercel.app", "methods": ["GET", "POST", "OPTIONS"], "allow_headers": ["Content-Type"], "supports_credentials": True}})
+CORS(app, resources={r"/*": {"origins": ["https://air-pollution-gta.vercel.app", "null"], "methods": ["GET", "POST", "OPTIONS"], "allow_headers": ["Content-Type"], "supports_credentials": True}})
 
 # Endpoint to receive and store location data
 @app.route('/test_deploy', methods=['GET'])
@@ -43,8 +43,9 @@ def point_history():
     conn = psycopg2.connect(**db_credentials)
     cur = conn.cursor()
 
-    cur.execute("SELECT * FROM gta_p2.webapp_trajectory_point WHERE trip_id = %s", (trip_id,))
+    cur.execute("SELECT * FROM gta_p2.webapp_trajectory_point")
     data = cur.fetchall()
+    print('Data fetched', data)
 
     conn.close()
 
