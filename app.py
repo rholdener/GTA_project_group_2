@@ -79,7 +79,7 @@ def calculate_ri():
         cur.execute(
             """
             SELECT value
-            FROM laerm_data
+            FROM learm_data
             WHERE ST_Contains(geom, ST_SetSRID(ST_MakePoint(%s, %s), 4326))
             ORDER BY value DESC
             LIMIT 1
