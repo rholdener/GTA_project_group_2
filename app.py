@@ -77,7 +77,7 @@ def calculate_ri():
     cur.execute(sql, (lng, lat))
     distance = cur.fetchall()
 
-    
+
     conn.close()
     """
 
@@ -93,6 +93,21 @@ def calculate_ri():
     }
 
     return jsonify(data), 200
+
+@app.route('/highest_trip_id', methods=['GET'])
+def highest_trip_id():
+    with open('db_login.json', 'r') as file:
+        db_credentials = json5.load(file)
+    
+    conn = psycopg2.connect(**db_credentials)
+    cur = conn.cursor()
+
+    cur.execute("SELECT MAX(trip_id) FROM gta_p2.webapp_trajectory_point")
+    trip_id = cur.fetchall()
+
+    conn.close()
+
+    return jsonify(trip_id), 200
 
 if __name__ == '__main__':
     app.run(port=8989, debug=True)
