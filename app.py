@@ -53,57 +53,62 @@ def point_history():
 
 @app.route('/calculate_ri', methods=['GET'])
 def calculate_ri():
-    lat, lng = float(request.args.get('lat')), float(request.args.get('lng'))
-
-
-    with open('db_login.json', 'r') as file:
-        db_credentials = json5.load(file)
     
-    conn = psycopg2.connect(**db_credentials)
-    cur = conn.cursor()
+    try:
+        lat, lng = float(request.args.get('lat')), float(request.args.get('lng'))
 
-    # spatial query to get ri, noise, etc.
-    cur.execute(
-        """
-        SELECT id, ST_DISTANCE(geom, ST_SetSRID(ST_MakePoint(%s, %s), 4326)) AS distance
-        FROM trees
-        ORDER BY geom <-> ST_SetSRID(ST_MakePoint(%s, %s), 4326)
-        LIMIT 1
-        """,
-        (lng, lat, lng, lat)
-    )
-    nearest_tree = cur.fetchone()
 
-    cur.execute(
-        """
-        SELECT value
-        FROM laerm_data
-        WHERE ST_Contains(geom, ST_SetSRID(ST_MakePoint(%s, %s), 4326))
-        ORDER BY value DESC
-        LIMIT 1
-        """, 
-        (lng, lat)
-    )
-    noise = cur.fetchone()
+        with open('db_login.json', 'r') as file:
+            db_credentials = json5.load(file)
+        
+        conn = psycopg2.connect(**db_credentials)
+        cur = conn.cursor()
 
-    if noise is not None:
-        noise = noise[0]
-    else:
-        noise = 0
+        # spatial query to get ri, noise, etc.
+        cur.execute(
+            """
+            SELECT id, ST_DISTANCE(geom, ST_SetSRID(ST_MakePoint(%s, %s), 4326)) AS distance
+            FROM trees
+            ORDER BY geom <-> ST_SetSRID(ST_MakePoint(%s, %s), 4326)
+            LIMIT 1
+            """,
+            (lng, lat, lng, lat)
+        )
+        nearest_tree = cur.fetchone()
 
-    conn.close()
+        cur.execute(
+            """
+            SELECT value
+            FROM laerm_data
+            WHERE ST_Contains(geom, ST_SetSRID(ST_MakePoint(%s, %s), 4326))
+            ORDER BY value DESC
+            LIMIT 1
+            """, 
+            (lng, lat)
+        )
+        noise = cur.fetchone()
+
+        if noise is not None:
+            noise = noise[0]
+        else:
+            noise = 0
+
+        conn.close()
+        
+
+        #For now random values are returned
+        r_i = random.randint(1, 100)
+
+        data = {
+            'ri': r_i,
+            'noise': noise,
+            'distance': nearest_tree[1]
+        }
+
+        return jsonify(data), 200
     
-
-    #For now random values are returned
-    r_i = random.randint(1, 100)
-
-    data = {
-        'ri': r_i,
-        'noise': noise,
-        'distance': nearest_tree[1]
-    }
-
-    return jsonify(data), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
 
 @app.route('/highest_trip_id', methods=['GET'])
 def highest_trip_id():
