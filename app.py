@@ -82,9 +82,9 @@ def calculate_ri():
     """
 
     #For now random values are returned
-    r_i = random.randint(1, 10)
-    noise = random.randint(1, 10)
-    distance = random.randint(1, 10)
+    r_i = random.randint(1, 100)
+    noise = random.randint(1, 100)
+    distance = random.randint(1, 100)
 
     data = {
         'ri': r_i,
