@@ -77,6 +77,7 @@ def calculate_ri():
     cur.execute(sql, (lng, lat))
     distance = cur.fetchall()
 
+    
     conn.close()
     """
 
