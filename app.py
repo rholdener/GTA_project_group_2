@@ -128,54 +128,62 @@ def highest_trip_id():
 
 @app.route('/login', methods=['GET'])
 def login():
-    username = request.args.get('username')
-    password = hash_password(request.args.get('password'))
+    try:
+        username = request.args.get('username')
+        password = hash_password(request.args.get('password'))
 
-    with open('db_login.json', 'r') as file:
-        db_credentials = json5.load(file)
+        with open('db_login.json', 'r') as file:
+            db_credentials = json5.load(file)
+        
+        conn = psycopg2.connect(**db_credentials)
+        cur = conn.cursor()
+
+        cur.execute("SELECT * FROM webapp_user WHERE username", (username,))
+        user = cur.fetchone()
+
+        if user is None:
+            return jsonify({'error': 'User not found'}), 400
+        
+        if user[2] != password:
+            return jsonify({'error': 'Incorrect password'}), 400
+
+        conn.close()
+
+        return jsonify((user[0], user[1])), 200
     
-    conn = psycopg2.connect(**db_credentials)
-    cur = conn.cursor()
-
-    cur.execute("SELECT * FROM webapp_user WHERE username", (username,))
-    user = cur.fetchone()
-
-    if user is None:
-        return jsonify({'error': 'User not found'}), 400
-    
-    if user[2] != password:
-        return jsonify({'error': 'Incorrect password'}), 400
-
-    conn.close()
-
-    return jsonify((user[0], user[1])), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
 
 @app.route('/register', methods=['GET'])
 def register():
-    username = request.args.get('username')
-    password = hash_password(request.args.get('password'))
+    try:
+        username = request.args.get('username')
+        password = hash_password(request.args.get('password'))
 
-    with open('db_login.json', 'r') as file:
-        db_credentials = json5.load(file)
+        with open('db_login.json', 'r') as file:
+            db_credentials = json5.load(file)
+        
+        conn = psycopg2.connect(**db_credentials)
+        cur = conn.cursor()
+
+        cur.execute("SELECT * FROM webapp_user WHERE username", (username,))
+        user = cur.fetchone()
+
+        if user is not None:
+            return jsonify({'error': 'User already exists'}), 400
+
+        cur.execute("INSERT INTO webapp_user (username, password) VALUES (%s, %s)", (username, password))
+        conn.commit()
+
+        cur.execute("SELECT * FROM webapp_user WHERE username", (username,))
+        user = cur.fetchone()
+
+        conn.close()
+
+        return jsonify({'message': 'User registered successfully', 'user': (user[0], user[1])}), 200
     
-    conn = psycopg2.connect(**db_credentials)
-    cur = conn.cursor()
-
-    cur.execute("SELECT * FROM webapp_user WHERE username", (username,))
-    user = cur.fetchone()
-
-    if user is not None:
-        return jsonify({'error': 'User already exists'}), 400
-
-    cur.execute("INSERT INTO webapp_user (username, password) VALUES (%s, %s)", (username, password))
-    conn.commit()
-
-    cur.execute("SELECT * FROM webapp_user WHERE username", (username,))
-    user = cur.fetchone()
-
-    conn.close()
-
-    return jsonify({'message': 'User registered successfully', 'user': (user[0], user[1])}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
 
 
 def hash_password(password):
