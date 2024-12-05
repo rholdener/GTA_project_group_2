@@ -185,6 +185,28 @@ def register():
     except Exception as e:
         return jsonify({'error': str(e)}), 400
 
+@app.route('/insert_trip', methods=["GET"])
+def insert_trip():
+    try:
+        trip_id = request.args.get('trip_id')
+        user_id = request.args.get('user_id')
+
+        with open('db_login.json', 'r') as file:
+            db_credentials = json5.load(file)
+        
+        conn = psycopg2.connect(**db_credentials)
+        cur = conn.cursor()
+
+        cur.execute("INSERT INTO webapp_trajectory (trip_id, user_id) VALUES (%s, %s)", (trip_id, user_id))
+        conn.commit()
+
+        conn.close()
+
+        return jsonify({'message': 'Trip inserted successfully'}), 200
+    
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
 
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
