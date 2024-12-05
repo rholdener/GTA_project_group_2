@@ -197,7 +197,7 @@ def insert_trip():
         conn = psycopg2.connect(**db_credentials)
         cur = conn.cursor()
 
-        cur.execute("INSERT INTO webapp_trajectory (trip_id, user_id) VALUES (%s, %s)", (trip_id, user_id))
+        cur.execute("INSERT INTO webapp_trip (trip_id, user_id) VALUES (%s, %s)", (trip_id, user_id))
         conn.commit()
 
         conn.close()
