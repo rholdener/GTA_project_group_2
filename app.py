@@ -138,7 +138,7 @@ def login():
         conn = psycopg2.connect(**db_credentials)
         cur = conn.cursor()
 
-        cur.execute("SELECT * FROM webapp_user WHERE name", (username,))
+        cur.execute("SELECT * FROM webapp_user WHERE name = %s", (username,))
         user = cur.fetchone()
 
         if user is None:
@@ -166,7 +166,7 @@ def register():
         conn = psycopg2.connect(**db_credentials)
         cur = conn.cursor()
 
-        cur.execute("SELECT * FROM webapp_user WHERE name", (username,))
+        cur.execute("SELECT * FROM webapp_user WHERE name=%s", (username,))
         user = cur.fetchone()
 
         if user is not None:
@@ -175,7 +175,7 @@ def register():
         cur.execute("INSERT INTO webapp_user (name, password) VALUES (%s, %s)", (username, password))
         conn.commit()
 
-        cur.execute("SELECT * FROM webapp_user WHERE name", (username,))
+        cur.execute("SELECT * FROM webapp_user WHERE name=%s", (username,))
         user = cur.fetchone()
 
         conn.close()
