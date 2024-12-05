@@ -4,6 +4,7 @@ import psycopg2
 from psycopg2.extensions import AsIs
 import json5
 import random
+import hashlib
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": ["https://air-pollution-gta.vercel.app", "null"], "methods": ["GET", "POST", "OPTIONS"], "allow_headers": ["Content-Type"], "supports_credentials": True}})
@@ -124,6 +125,61 @@ def highest_trip_id():
     conn.close()
 
     return jsonify(trip_id), 200
+
+@app.route('/login', methods=['GET'])
+def login():
+    username = request.args.get('username')
+    password = hash_password(request.args.get('password'))
+
+    with open('db_login.json', 'r') as file:
+        db_credentials = json5.load(file)
+    
+    conn = psycopg2.connect(**db_credentials)
+    cur = conn.cursor()
+
+    cur.execute("SELECT * FROM gta_p2.webapp_user WHERE username", (username,))
+    user = cur.fetchone()
+
+    if user is None:
+        return jsonify({'error': 'User not found'}), 400
+    
+    if user[2] != password:
+        return jsonify({'error': 'Incorrect password'}), 400
+
+    conn.close()
+
+    return jsonify((user[0], user[1])), 200
+
+@app.route('/register', methods=['GET'])
+def register():
+    username = request.args.get('username')
+    password = hash_password(request.args.get('password'))
+
+    with open('db_login.json', 'r') as file:
+        db_credentials = json5.load(file)
+    
+    conn = psycopg2.connect(**db_credentials)
+    cur = conn.cursor()
+
+    cur.execute("SELECT * FROM gta_p2.webapp_user WHERE username", (username,))
+    user = cur.fetchone()
+
+    if user is not None:
+        return jsonify({'error': 'User already exists'}), 400
+
+    cur.execute("INSERT INTO gta_p2.webapp_user (username, password) VALUES (%s, %s)", (username, password))
+    conn.commit()
+
+    cur.execute("SELECT * FROM gta_p2.webapp_user WHERE username", (username,))
+    user = cur.fetchone()
+
+    conn.close()
+
+    return jsonify({'message': 'User registered successfully', 'user': (user[0], user[1])}), 200
+
+
+def hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
 
 if __name__ == '__main__':
     app.run(port=8989, debug=True)
