@@ -137,7 +137,7 @@ def login():
     conn = psycopg2.connect(**db_credentials)
     cur = conn.cursor()
 
-    cur.execute("SELECT * FROM gta_p2.webapp_user WHERE username", (username,))
+    cur.execute("SELECT * FROM webapp_user WHERE username", (username,))
     user = cur.fetchone()
 
     if user is None:
@@ -161,16 +161,16 @@ def register():
     conn = psycopg2.connect(**db_credentials)
     cur = conn.cursor()
 
-    cur.execute("SELECT * FROM gta_p2.webapp_user WHERE username", (username,))
+    cur.execute("SELECT * FROM webapp_user WHERE username", (username,))
     user = cur.fetchone()
 
     if user is not None:
         return jsonify({'error': 'User already exists'}), 400
 
-    cur.execute("INSERT INTO gta_p2.webapp_user (username, password) VALUES (%s, %s)", (username, password))
+    cur.execute("INSERT INTO webapp_user (username, password) VALUES (%s, %s)", (username, password))
     conn.commit()
 
-    cur.execute("SELECT * FROM gta_p2.webapp_user WHERE username", (username,))
+    cur.execute("SELECT * FROM webapp_user WHERE username", (username,))
     user = cur.fetchone()
 
     conn.close()
