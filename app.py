@@ -213,3 +213,26 @@ def hash_password(password):
 
 if __name__ == '__main__':
     app.run(port=8989, debug=True)
+
+
+@app.route('/update_mean_ri', methods=["POST"])
+def update_mean_ri():
+    try:
+        trip_id = request.json.get('trip_id')
+        mean_ri = request.json.get('mean_ri')
+
+        with open('db_login.json', 'r') as file:
+            db_credentials = json5.load(file)
+        
+        conn = psycopg2.connect(**db_credentials)
+        cur = conn.cursor()
+
+        cur.execute("UPDATE webapp_trip SET mean_ri = %s WHERE trip_id = %s", (mean_ri, trip_id))
+        conn.commit()
+
+        conn.close()
+
+        return jsonify({'message': 'mean_ri updated successfully'}), 200
+    
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
