@@ -219,16 +219,20 @@ def all_paths():
         cur = conn.cursor()
 
         cur.execute("SELECT trip_id, user_id FROM gta_p2.webapp_trip WHERE user_id = %s", (user_id,))
-        data = cur.fetchall()
+        result = cur.fetchall()
 
-        trip_ids = [x[0] for x in data]
+        trip_ids = [x[0] for x in result]
 
-        cur.execute("SELECT * FROM gta_p2.webapp_trajectory_point WHERE trip_id = ANY(%s)", (trip_ids,))
-        data = cur.fetchall()
+        data = []
+
+        for trip_id in trip_ids:
+            cur.execute("SELECT * FROM gta_p2.webapp_trajectory_point WHERE trip_id = %s", (trip_id,))
+            points = cur.fetchall()
+            data.append(points)
 
         conn.close()
 
-        return jsonify(data), 200
+        return jsonify({'data' : data}), 200
     
     except Exception as e:
         return jsonify({'error': str(e)}), 400
