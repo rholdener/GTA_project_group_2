@@ -44,13 +44,20 @@ def point_history():
     conn = psycopg2.connect(**db_credentials)
     cur = conn.cursor()
 
-    cur.execute("SELECT * FROM gta_p2.webapp_trajectory_point")
+    cur.execute(
+            """
+            SELECT ST_X(geom) AS lng, ST_Y(geom) AS lat, ri_value, noise, distance
+            FROM gta_p2.webapp_trajectory_point
+            WHERE trip_id = %s
+            """, 
+            (trip_id,)
+            )
     data = cur.fetchall()
-    print('Data fetched', data)
+    points = [{'lat': point[1], 'lng': point[0], 'ri_value': (point[2] + point[3] + point[4]) / 3} for point in data]
 
     conn.close()
 
-    return jsonify(data), 200
+    return jsonify({'points': points}), 200
 
 @app.route('/calculate_ri', methods=['GET'])
 def calculate_ri():
@@ -226,9 +233,19 @@ def all_paths():
         data = []
 
         for trip_id in trip_ids:
-            cur.execute("SELECT * FROM gta_p2.webapp_trajectory_point WHERE trip_id = %s", (trip_id,))
-            points = cur.fetchall()
-            data.append(points)
+            cur.execute(
+            """
+            SELECT ST_X(geom) AS lng, ST_Y(geom) AS lat, ri_value, noise, distance
+            FROM gta_p2.webapp_trajectory_point
+            WHERE trip_id = %s
+            """, 
+            (trip_id,)
+            )
+            trip_data = cur.fetchall()
+            data.append({
+            'trip_id': trip_id,
+            'points': [{'lat': point[1], 'lng': point[0], 'ri_value': (point[2] + point[3] + point[4]) / 3} for point in trip_data]
+            })
 
         conn.close()
 
