@@ -207,6 +207,33 @@ def insert_trip():
     except Exception as e:
         return jsonify({'error': str(e)}), 400
 
+@app.route('/all_paths', methods=['GET'])
+def all_paths():
+    try:
+        user_id = request.args.get('user_id')
+
+        with open('db_login.json', 'r') as file:
+            db_credentials = json5.load(file)
+        
+        conn = psycopg2.connect(**db_credentials)
+        cur = conn.cursor()
+
+        cur.execute("SELECT trip_id, user_id FROM gta_p2.webapp_trip WHERE user_id = %s", (user_id,))
+        data = cur.fetchall()
+
+        trip_ids = [x[0] for x in data]
+
+        cur.execute("SELECT * FROM gta_p2.webapp_trajectory_point WHERE trip_id = ANY(%s)", (trip_ids,))
+        data = cur.fetchall()
+
+        conn.close()
+
+        return jsonify(data), 200
+    
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+
 
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
