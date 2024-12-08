@@ -36,28 +36,32 @@ def test_data():
 
 @app.route('/point_history', methods=['GET'])
 def point_history():
-    trip_id = request.args.get('trip_id')
+    try:
+        trip_id = request.args.get('trip_id')
 
-    with open('db_login.json', 'r') as file:
-        db_credentials = json5.load(file)
+        with open('db_login.json', 'r') as file:
+            db_credentials = json5.load(file)
+        
+        conn = psycopg2.connect(**db_credentials)
+        cur = conn.cursor()
+
+        cur.execute(
+                """
+                SELECT ST_X(geom) AS lng, ST_Y(geom) AS lat, ri_value, noise, distance
+                FROM gta_p2.webapp_trajectory_point
+                WHERE trip_id = %s
+                """, 
+                (trip_id,)
+                )
+        data = cur.fetchall()
+        points = [{'lat': point[1], 'lng': point[0], 'ri_value': (point[2] + point[3] + point[4]) / 3} for point in data]
+
+        conn.close()
+
+        return jsonify({'points': points}), 200
     
-    conn = psycopg2.connect(**db_credentials)
-    cur = conn.cursor()
-
-    cur.execute(
-            """
-            SELECT ST_X(geom) AS lng, ST_Y(geom) AS lat, ri_value, noise, distance
-            FROM gta_p2.webapp_trajectory_point
-            WHERE trip_id = %s
-            """, 
-            (trip_id,)
-            )
-    data = cur.fetchall()
-    points = [{'lat': point[1], 'lng': point[0], 'ri_value': (point[2] + point[3] + point[4]) / 3} for point in data]
-
-    conn.close()
-
-    return jsonify({'points': points}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
 
 @app.route('/calculate_ri', methods=['GET'])
 def calculate_ri():
