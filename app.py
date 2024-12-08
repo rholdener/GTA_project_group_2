@@ -47,7 +47,7 @@ def point_history():
 
         cur.execute(
                 """
-                SELECT ST_X(geom) AS lng, ST_Y(geom) AS lat, ri_value, noise, distance
+                SELECT ST_X(geometry) AS lng, ST_Y(geometry) AS lat, ri_value, noise, distance
                 FROM gta_p2.webapp_trajectory_point
                 WHERE trip_id = %s
                 """, 
@@ -239,7 +239,7 @@ def all_paths():
         for trip_id in trip_ids:
             cur.execute(
             """
-            SELECT ST_X(geom) AS lng, ST_Y(geom) AS lat, ri_value, noise, distance
+            SELECT ST_X(geometry) AS lng, ST_Y(geometry) AS lat, ri_value, noise, distance
             FROM gta_p2.webapp_trajectory_point
             WHERE trip_id = %s
             """, 
