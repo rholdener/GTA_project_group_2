@@ -12,14 +12,23 @@ CORS(app, resources={r"/*": {"origins": ["https://air-pollution-gta.vercel.app",
 # Endpoint to receive and store location data
 @app.route('/test_deploy', methods=['GET'])
 def test_deploy():
+    """
+    Funktion user to test the deployment of the app
+    """
     return jsonify({'message': 'Hello World!'}), 200
 
 @app.route('/', methods=['GET'])
 def home():
+    """
+    function to test the connection to the server
+    """
     return jsonify('Connection established'), 200
 
 @app.route('/test_data', methods=['GET'])
 def test_data():
+    """
+    function to test the connection to the server
+    """
     with open('db_login.json', 'r') as file:
         db_credentials = json5.load(file)
     
@@ -36,6 +45,9 @@ def test_data():
 
 @app.route('/point_history', methods=['GET'])
 def point_history():
+    """
+    function to get all points of a trip
+    """
     try:
         trip_id = request.args.get('trip_id')
 
@@ -65,6 +77,9 @@ def point_history():
 
 @app.route('/calculate_ri', methods=['GET'])
 def calculate_ri():
+    """
+    Calculate the ri value, noise value and tree distance for a given location
+    """
     
     try:
         lat, lng = float(request.args.get('lat')), float(request.args.get('lng'))
@@ -124,6 +139,9 @@ def calculate_ri():
 
 @app.route('/highest_trip_id', methods=['GET'])
 def highest_trip_id():
+    """
+    Returns the highest trip_id in the database
+    """
     with open('db_login.json', 'r') as file:
         db_credentials = json5.load(file)
     
@@ -139,6 +157,9 @@ def highest_trip_id():
 
 @app.route('/login', methods=['GET'])
 def login():
+    """
+    Function to login a user
+    """
     try:
         username = request.args.get('username')
         password = hash_password(request.args.get('password'))
@@ -167,6 +188,9 @@ def login():
 
 @app.route('/register', methods=['GET'])
 def register():
+    """
+    Function to register a user
+    """
     try:
         username = request.args.get('username')
         password = hash_password(request.args.get('password'))
@@ -198,6 +222,10 @@ def register():
 
 @app.route('/insert_trip', methods=["GET"])
 def insert_trip():
+    """
+    Function to insert a new trip into the database
+    """
+
     try:
         trip_id = request.args.get('trip_id')
         user_id = request.args.get('user_id')
@@ -220,6 +248,10 @@ def insert_trip():
 
 @app.route('/all_paths', methods=['GET'])
 def all_paths():
+    """
+    Function to get all points of all trips of a user
+    """
+
     try:
         user_id = request.args.get('user_id')
 
@@ -261,14 +293,17 @@ def all_paths():
 
 
 def hash_password(password):
+    """
+    Function to hash a password
+    """
     return hashlib.sha256(password.encode()).hexdigest()
-
-if __name__ == '__main__':
-    app.run(port=8989, debug=True)
 
 
 @app.route('/update_mean_ri', methods=["POST"])
 def update_mean_ri():
+    """
+    Function to update the mean_ri of a trip
+    """
     try:
         trip_id = request.json.get('trip_id')
         mean_ri = request.json.get('mean_ri')
@@ -288,3 +323,6 @@ def update_mean_ri():
     
     except Exception as e:
         return jsonify({'error': str(e)}), 400
+
+if __name__ == '__main__':
+    app.run(port=8989, debug=True)
