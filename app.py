@@ -5,6 +5,7 @@ from psycopg2.extensions import AsIs
 import json5
 import random
 import hashlib
+import math
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": ["https://air-pollution-gta.vercel.app", "null"], "methods": ["GET", "POST", "OPTIONS"], "allow_headers": ["Content-Type"], "supports_credentials": True}})
@@ -102,6 +103,14 @@ def calculate_ri():
             (lng, lat, lng, lat)
         )
         nearest_tree = cur.fetchone()
+        tree_distance = nearest_tree[1]
+
+        if tree_distance < 5:
+            distance_index = 100
+        elif tree_distance > 30:
+            distance_index = 0
+        else:
+            distance_index = int(100 - ((tree_distance - 5) / (30 - 5) * 100))
 
         cur.execute(
             """
@@ -121,6 +130,12 @@ def calculate_ri():
             noise = 0
 
         conn.close()
+        if noise < 25:
+            noise_index = 100
+        elif noise > 70:
+            noise_index = 0
+        else:
+            noise_index = int(100 - math.exp((noise - 70) / 10) * 100)
         
 
         #For now random values are returned
@@ -128,8 +143,8 @@ def calculate_ri():
 
         data = {
             'ri': r_i,
-            'noise': noise,
-            'distance': nearest_tree[1]
+            'noise': noise_index,
+            'distance': distance_index
         }
 
         return jsonify(data), 200
