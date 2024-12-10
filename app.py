@@ -95,22 +95,20 @@ def calculate_ri():
         # spatial query to get ri, noise, etc.
         cur.execute(
             """
-            SELECT id, ST_DISTANCE(geom, ST_SetSRID(ST_MakePoint(%s, %s), 4326)) AS distance
+            SELECT COUNT(*)
             FROM trees
-            ORDER BY geom <-> ST_SetSRID(ST_MakePoint(%s, %s), 4326)
-            LIMIT 1
+            WHERE ST_DWithin(geom, ST_SetSRID(ST_MakePoint(%s, %s), 4326), 50)
             """,
-            (lng, lat, lng, lat)
+            (lng, lat)
         )
-        nearest_tree = cur.fetchone()
-        tree_distance = nearest_tree[1]
+        tree_count = cur.fetchone()[0]
 
-        if tree_distance < 5:
-            distance_index = 100
-        elif tree_distance > 30:
-            distance_index = 0
+        if tree_count > 250:
+            tree_index = 100
+        elif tree_count < 10:
+            tree_index = 0
         else:
-            distance_index = int(100 - ((tree_distance - 5) / (30 - 5) * 100))
+            tree_index = math.log(tree_count - 9, 241) * 100
 
         cur.execute(
             """
@@ -144,7 +142,7 @@ def calculate_ri():
         data = {
             'ri': r_i,
             'noise': noise_index,
-            'distance': distance_index
+            'distance': tree_index
         }
 
         return jsonify(data), 200
