@@ -358,5 +358,26 @@ def update_mean_ri():
     except Exception as e:
         return jsonify({'error': str(e)}), 400
 
+@app.route('/city_ri', methods=['GET'])
+def city_ri():
+    """
+    Function to get the mean ri value of a city
+    """
+    try:
+        with open('db_login.json', 'r') as file:
+            db_credentials = json5.load(file)
+        
+        conn = psycopg2.connect(**db_credentials)
+        cur = conn.cursor()
+
+        cur.execute("SELECT AVG(mean_ri) FROM webapp_trip")
+        ri = cur.fetchone()[0]
+        conn.close()
+
+        return jsonify({'ri': ri}), 200
+    
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
 if __name__ == '__main__':
     app.run(port=8989, debug=True)
