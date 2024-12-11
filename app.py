@@ -371,7 +371,7 @@ def city_ri():
         cur = conn.cursor()
 
         cur.execute("SELECT AVG(mean_ri) FROM webapp_trip")
-        ri = cur.fetchone()[0]
+        ri = float(cur.fetchone()[0])
         conn.close()
 
         return jsonify({'ri': ri}), 200
