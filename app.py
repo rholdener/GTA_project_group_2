@@ -103,12 +103,12 @@ def calculate_ri():
         )
         tree_count = cur.fetchone()[0]
 
-        if tree_count > 250:
+        if tree_count > 284:
             tree_index = 100
         elif tree_count < 10:
             tree_index = 0
         else:
-            tree_index = math.log(tree_count - 9, 241) * 100
+            tree_index = math.log(tree_count - 9, 275) * 100
 
         cur.execute(
             """
