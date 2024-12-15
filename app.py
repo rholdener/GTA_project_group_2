@@ -146,36 +146,38 @@ def calculate_ri():
             noise_index = int(100 - math.exp((noise - 70) / 10) * 100) ##int??
 
         
-        #pollution
-        # cur.execute(
-        #     """
-        #     SELECT value
-        #     FROM pollution_data
-        #     WHERE ST_Contains(geom, ST_SetSRID(ST_MakePoint(%s, %s), 4326))
-        #     ORDER BY value DESC
-        #     LIMIT 1
-        #     """, 
-        #     (lng, lat)
-        # )
-        # pollution = cur.fetchone()
+        # pollution
+        tables = [
+            "no2_values",
+            "pm10_values",
+            "pm25_values",
+            "russ_values",
+        ]
 
-        # if pollution is not None:
-        #     pollution = pollution[0]
-        # else:
-        #     pollution = 0
+        pollution_values = []
 
-        # conn.close()
-        # #hier noch anpassen!!
-        # if pollution < 25:
-        #     pollution_index = 999
-        # elif pollution > 70:
-        #     pollution_index = 999
-        # else:
-        #     pollution_index = 999
-        
-        pollution_index = 99
+        for table in tables:
+            cur.execute(
+                """
+                SELECT value
+                FROM %s
+                WHERE ST_Contains(geom, ST_SetSRID(ST_MakePoint(%s, %s), 4326))
+                ORDER BY value DESC
+                LIMIT 1
+                """,
+                (AsIs(table), lng, lat)
+            )
 
-##ri so berechnen?                                                                  ??
+            value = cur.fetchone()
+
+            if value is not None:
+                pollution_values.append(value[0])
+            else:
+                pollution_values.append(0)
+            
+        pollution_index = sum(pollution_values) / 4 #pollution_index so berechnen???? 
+
+##ri so berechnen???
         r_i = (noise_index + tree_index + pollution_index)/3
 
         data = {
@@ -320,54 +322,6 @@ def get_trips():
     except Exception as e:
         return jsonify({'error': str(e)}), 400
 
-# brauchen wir nicht mehr, oder ??                                          ??
-# @app.route('/all_paths', methods=['GET'])
-# def all_paths():
-#     """
-#     Function to get all points of all trips of a user
-#     """
-
-#     try:
-#         user_id = request.args.get('user_id')
-
-#         with open('db_login.json', 'r') as file:
-#             db_credentials = json5.load(file)
-        
-#         conn = psycopg2.connect(**db_credentials)
-#         cur = conn.cursor()
-
-#         cur.execute("SELECT trip_id, user_id FROM gta_p2.webapp_trip WHERE user_id = %s", (user_id,))
-#         result = cur.fetchall()
-
-#         trip_ids = [x[0] for x in result]
-
-#         data = []
-
-#         for trip_id in trip_ids:
-#             cur.execute(
-#             """
-#             SELECT ST_X(geometry) AS lng, ST_Y(geometry) AS lat, ri_value, noise_value, tree_count, pollution_value
-#             FROM gta_p2.webapp_trajectory_point
-#             WHERE trip_id = %s
-#             """, 
-#             (trip_id,)
-#             )
-#             trip_data = cur.fetchall()
-#             data.append({
-#             'trip_id': trip_id,
-#             'points': [{'lat': point[1], 'lng': point[0], 'ri_value': (point[2] + point[3] + point[4] + point[5]) / 4} for point in trip_data]
-#             })
-
-
-#         conn.close()
-
-#         return jsonify({'data' : data}), 200
-    
-#     except Exception as e:
-#         return jsonify({'error': str(e)}), 400
-
-
-
 def hash_password(password):
     """
     Function to hash a password
@@ -420,6 +374,14 @@ def city_ri():
     
     except Exception as e:
         return jsonify({'error': str(e)}), 400
+
+def get_pollution(lat, lng, cur):
+    """
+    Function to get the pollution value of a location
+    """
+
+
+    return pollution_index
 
 if __name__ == '__main__':
     app.run(port=8989, debug=True)
