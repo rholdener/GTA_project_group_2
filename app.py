@@ -170,7 +170,7 @@ def calculate_ri():
         # else:
         #     pollution_index = 999
         
-        pollution_index = 999
+        pollution_index = 99
 
         #For now random values are returned, anpassen!!
         r_i = random.randint(1, 100)
