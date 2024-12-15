@@ -67,10 +67,11 @@ def point_history():
                 (trip_id,)
                 )
         data = cur.fetchall()
-        points = [{'lat': point[1], 'lng': point[0], 'ri_value': (point[2] + point[3] + point[4] + point[5]) / 4} for point in data]
+        points = [{'lat': point[1], 'lng': point[0], 'ri_value': point[2]} for point in data]
 
 
-#hier einfach ri_value nehmen oder nicht??
+#hier schon einfach ri_value nehmen oder nicht??
+#vorher: points = [{'lat': point[1], 'lng': point[0], 'ri_value': (point[2] + point[3] + point[4] + point[5]) / 4} for point in data]
 
 
         conn.close()
