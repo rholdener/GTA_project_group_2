@@ -60,14 +60,16 @@ def point_history():
 
         cur.execute(
                 """
-                SELECT ST_X(geometry) AS lng, ST_Y(geometry) AS lat, ri_value, noise_value, tree_distance
+                SELECT ST_X(geometry) AS lng, ST_Y(geometry) AS lat, ri_value, noise_value, tree_count, pollution_value
                 FROM gta_p2.webapp_trajectory_point
                 WHERE trip_id = %s
                 """, 
                 (trip_id,)
                 )
         data = cur.fetchall()
-        points = [{'lat': point[1], 'lng': point[0], 'ri_value': (point[2] + point[3] + point[4]) / 3} for point in data]
+        points = [{'lat': point[1], 'lng': point[0], 'ri_value': (point[2] + point[3] + point[4] + point[5]) / 4} for point in data]
+
+#stimmt das???
 
         conn.close()
 
@@ -93,6 +95,9 @@ def calculate_ri():
         cur = conn.cursor()
 
         # spatial query to get ri, noise, etc.
+
+
+        #tree_count
         cur.execute(
             """
             SELECT COUNT(*)
@@ -110,6 +115,8 @@ def calculate_ri():
         else:
             tree_index = math.log(tree_count - 9, 275) * 100
 
+
+        #noise
         cur.execute(
             """
             SELECT value
@@ -133,16 +140,45 @@ def calculate_ri():
         elif noise > 70:
             noise_index = 0
         else:
-            noise_index = int(100 - math.exp((noise - 70) / 10) * 100)
+            noise_index = int(100 - math.exp((noise - 70) / 10) * 100) ##int??
+
+        
+        #pollution
+        cur.execute(
+            """
+            SELECT value
+            FROM pollution_data
+            WHERE ST_Contains(geom, ST_SetSRID(ST_MakePoint(%s, %s), 4326))
+            ORDER BY value DESC
+            LIMIT 1
+            """, 
+            (lng, lat)
+        )
+        pollution = cur.fetchone()
+
+        if pollution is not None:
+            pollution = pollution[0]
+        else:
+            pollution = 0
+
+        conn.close()
+        #hier noch anpassen!!
+        if pollution < 25:
+            pollution_index = 999
+        elif pollution > 70:
+            pollution_index = 999
+        else:
+            pollution_index = 999
         
 
-        #For now random values are returned
+        #For now random values are returned, anpassen!!
         r_i = random.randint(1, 100)
 
         data = {
             'ri': r_i,
             'noise': noise_index,
-            'distance': tree_index
+            'trees': tree_index,
+            'pollution': pollution_index,
         }
 
         return jsonify(data), 200
@@ -305,7 +341,7 @@ def all_paths():
         for trip_id in trip_ids:
             cur.execute(
             """
-            SELECT ST_X(geometry) AS lng, ST_Y(geometry) AS lat, ri_value, noise_value, tree_distance
+            SELECT ST_X(geometry) AS lng, ST_Y(geometry) AS lat, ri_value, noise_value, tree_count, pollution_value
             FROM gta_p2.webapp_trajectory_point
             WHERE trip_id = %s
             """, 
@@ -314,8 +350,10 @@ def all_paths():
             trip_data = cur.fetchall()
             data.append({
             'trip_id': trip_id,
-            'points': [{'lat': point[1], 'lng': point[0], 'ri_value': (point[2] + point[3] + point[4]) / 3} for point in trip_data]
+            'points': [{'lat': point[1], 'lng': point[0], 'ri_value': (point[2] + point[3] + point[4] + point[5]) / 4} for point in trip_data]
             })
+
+##stimmt das??
 
         conn.close()
 
