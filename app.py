@@ -175,7 +175,7 @@ def calculate_ri():
         
         pollution_index = 99
 
-##      ri so berechnen?                                        ??
+##ri so berechnen?                                                                  ??
         r_i = (noise_index + tree_index + pollution_index)/3
 
         data = {
@@ -320,6 +320,7 @@ def get_trips():
     except Exception as e:
         return jsonify({'error': str(e)}), 400
 
+# brauchen wir nicht mehr, oder ??                                          ??
 # @app.route('/all_paths', methods=['GET'])
 # def all_paths():
 #     """
