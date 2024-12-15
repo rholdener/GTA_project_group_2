@@ -144,32 +144,33 @@ def calculate_ri():
 
         
         #pollution
-        cur.execute(
-            """
-            SELECT value
-            FROM pollution_data
-            WHERE ST_Contains(geom, ST_SetSRID(ST_MakePoint(%s, %s), 4326))
-            ORDER BY value DESC
-            LIMIT 1
-            """, 
-            (lng, lat)
-        )
-        pollution = cur.fetchone()
+        # cur.execute(
+        #     """
+        #     SELECT value
+        #     FROM pollution_data
+        #     WHERE ST_Contains(geom, ST_SetSRID(ST_MakePoint(%s, %s), 4326))
+        #     ORDER BY value DESC
+        #     LIMIT 1
+        #     """, 
+        #     (lng, lat)
+        # )
+        # pollution = cur.fetchone()
 
-        if pollution is not None:
-            pollution = pollution[0]
-        else:
-            pollution = 0
+        # if pollution is not None:
+        #     pollution = pollution[0]
+        # else:
+        #     pollution = 0
 
-        conn.close()
-        #hier noch anpassen!!
-        if pollution < 25:
-            pollution_index = 999
-        elif pollution > 70:
-            pollution_index = 999
-        else:
-            pollution_index = 999
+        # conn.close()
+        # #hier noch anpassen!!
+        # if pollution < 25:
+        #     pollution_index = 999
+        # elif pollution > 70:
+        #     pollution_index = 999
+        # else:
+        #     pollution_index = 999
         
+        pollution_index = 999
 
         #For now random values are returned, anpassen!!
         r_i = random.randint(1, 100)
