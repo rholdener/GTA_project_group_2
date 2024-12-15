@@ -375,13 +375,5 @@ def city_ri():
     except Exception as e:
         return jsonify({'error': str(e)}), 400
 
-def get_pollution(lat, lng, cur):
-    """
-    Function to get the pollution value of a location
-    """
-
-
-    return pollution_index
-
 if __name__ == '__main__':
     app.run(port=8989, debug=True)
