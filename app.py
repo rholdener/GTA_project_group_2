@@ -69,7 +69,9 @@ def point_history():
         data = cur.fetchall()
         points = [{'lat': point[1], 'lng': point[0], 'ri_value': (point[2] + point[3] + point[4] + point[5]) / 4} for point in data]
 
-#stimmt das???
+
+#hier einfach ri_value nehmen oder nicht??
+
 
         conn.close()
 
@@ -94,8 +96,8 @@ def calculate_ri():
         conn = psycopg2.connect(**db_credentials)
         cur = conn.cursor()
 
-        # spatial query to get ri, noise, etc.
 
+        # spatial query to get ri, noise, etc.
 
         #tree_count
         cur.execute(
@@ -172,8 +174,8 @@ def calculate_ri():
         
         pollution_index = 99
 
-        #For now random values are returned, anpassen!!
-        r_i = random.randint(1, 100)
+##      ri so berechnen?                                        ??
+        r_i = (noise_index + tree_index + pollution_index)/3
 
         data = {
             'ri': r_i,
@@ -317,51 +319,50 @@ def get_trips():
     except Exception as e:
         return jsonify({'error': str(e)}), 400
 
-@app.route('/all_paths', methods=['GET'])
-def all_paths():
-    """
-    Function to get all points of all trips of a user
-    """
+# @app.route('/all_paths', methods=['GET'])
+# def all_paths():
+#     """
+#     Function to get all points of all trips of a user
+#     """
 
-    try:
-        user_id = request.args.get('user_id')
+#     try:
+#         user_id = request.args.get('user_id')
 
-        with open('db_login.json', 'r') as file:
-            db_credentials = json5.load(file)
+#         with open('db_login.json', 'r') as file:
+#             db_credentials = json5.load(file)
         
-        conn = psycopg2.connect(**db_credentials)
-        cur = conn.cursor()
+#         conn = psycopg2.connect(**db_credentials)
+#         cur = conn.cursor()
 
-        cur.execute("SELECT trip_id, user_id FROM gta_p2.webapp_trip WHERE user_id = %s", (user_id,))
-        result = cur.fetchall()
+#         cur.execute("SELECT trip_id, user_id FROM gta_p2.webapp_trip WHERE user_id = %s", (user_id,))
+#         result = cur.fetchall()
 
-        trip_ids = [x[0] for x in result]
+#         trip_ids = [x[0] for x in result]
 
-        data = []
+#         data = []
 
-        for trip_id in trip_ids:
-            cur.execute(
-            """
-            SELECT ST_X(geometry) AS lng, ST_Y(geometry) AS lat, ri_value, noise_value, tree_count, pollution_value
-            FROM gta_p2.webapp_trajectory_point
-            WHERE trip_id = %s
-            """, 
-            (trip_id,)
-            )
-            trip_data = cur.fetchall()
-            data.append({
-            'trip_id': trip_id,
-            'points': [{'lat': point[1], 'lng': point[0], 'ri_value': (point[2] + point[3] + point[4] + point[5]) / 4} for point in trip_data]
-            })
+#         for trip_id in trip_ids:
+#             cur.execute(
+#             """
+#             SELECT ST_X(geometry) AS lng, ST_Y(geometry) AS lat, ri_value, noise_value, tree_count, pollution_value
+#             FROM gta_p2.webapp_trajectory_point
+#             WHERE trip_id = %s
+#             """, 
+#             (trip_id,)
+#             )
+#             trip_data = cur.fetchall()
+#             data.append({
+#             'trip_id': trip_id,
+#             'points': [{'lat': point[1], 'lng': point[0], 'ri_value': (point[2] + point[3] + point[4] + point[5]) / 4} for point in trip_data]
+#             })
 
-##stimmt das??
 
-        conn.close()
+#         conn.close()
 
-        return jsonify({'data' : data}), 200
+#         return jsonify({'data' : data}), 200
     
-    except Exception as e:
-        return jsonify({'error': str(e)}), 400
+#     except Exception as e:
+#         return jsonify({'error': str(e)}), 400
 
 
 
