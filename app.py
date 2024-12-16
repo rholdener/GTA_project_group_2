@@ -148,9 +148,9 @@ def calculate_ri():
         ]
 
         ranges = [
-            [12.3, 72.5],
-            [9.8, 26.8],
-            [7.9, 15.7],
+            [12.3, 80],
+            [9.8, 50],
+            [7.9, 15],
             [0.19, 1.51]
         ]
 
@@ -175,7 +175,7 @@ def calculate_ri():
             else:
                 value = range[0]
             
-            pollution_values.append(100 - (value - range[0]) / (range[1] - range[0]) * 100)
+            pollution_values.append(max(100 - (value - range[0]) / (range[1] - range[0]) * 100, 0))
 
             
             
