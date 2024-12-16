@@ -3,7 +3,6 @@ from flask_cors import CORS, cross_origin  # needs to be installed via pip insta
 import psycopg2
 from psycopg2.extensions import AsIs
 import json5
-import random
 import hashlib
 import math
 
@@ -132,7 +131,6 @@ def calculate_ri():
         else:
             noise = 0
 
-        conn.close()
         if noise < 25:
             noise_index = 100
         elif noise > 70:
@@ -146,12 +144,19 @@ def calculate_ri():
             "no2_values",
             "pm10_values",
             "pm25_values",
-            "russ_values",
+            "russ_values"
+        ]
+
+        ranges = [
+            [12.3, 72.5],
+            [9.8, 26.8],
+            [7.9, 15.7],
+            [0.19, 1.51]
         ]
 
         pollution_values = []
 
-        for table in tables:
+        for range, table in zip(ranges, tables):
             cur.execute(
                 """
                 SELECT value
@@ -166,13 +171,16 @@ def calculate_ri():
             value = cur.fetchone()
 
             if value is not None:
-                pollution_values.append(value[0])
+                value = value[0]
             else:
-                pollution_values.append(0)
+                value = range[0]
             
-        pollution_index = sum(pollution_values) / 4 #pollution_index so berechnen???? 
+            pollution_values.append((value - range[0]) / (range[1] - range[0]) * 100)
 
-##ri so berechnen???
+            
+            
+        pollution_index = sum(pollution_values) / 4 #mean pollution index
+
         r_i = (noise_index + tree_index + pollution_index)/3
 
         data = {
