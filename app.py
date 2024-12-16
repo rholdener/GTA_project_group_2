@@ -175,7 +175,7 @@ def calculate_ri():
             else:
                 value = range[0]
             
-            pollution_values.append((value - range[0]) / (range[1] - range[0]) * 100)
+            pollution_values.append(100 - (value - range[0]) / (range[1] - range[0]) * 100)
 
             
             
