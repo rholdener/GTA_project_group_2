@@ -4,6 +4,7 @@ This project is a Flask-based web application that provides various endpoints to
 
 ## Prerequisites
 - "gta24" conda Enviroment
+- PostgreSQL database
 
 ## Running the Application
 
