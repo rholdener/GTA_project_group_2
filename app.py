@@ -206,7 +206,7 @@ def highest_trip_id():
     conn = psycopg2.connect(**db_credentials)
     cur = conn.cursor()
 
-    cur.execute("SELECT MAX(trip_id) FROM gta_p2.webapp_trajectory_point")
+    cur.execute("SELECT MAX(trip_id) FROM gta_p2.webapp_trip")
     trip_id = cur.fetchall()
 
     conn.close()
