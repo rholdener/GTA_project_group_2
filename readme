@@ -7,10 +7,13 @@ This project is a Flask-based web application that provides various endpoints to
 
 ## Running the Application
 
-To start the Flask application, run the following command:
-  ```sh
-  python app.py
-  ```
+To start the Flask application, follow these steps:
+
+1. Activate the conda enviroment
+2. Navigate to the project directory:
+3. Start the Flask application:
+
+The application should now be running, and you can access it via your web browser at `http://localhost:8989`.
 
 ## Endpoints
 
@@ -21,7 +24,7 @@ To start the Flask application, run the following command:
 - **`GET /calculate_ri`**: Calculate the RI value, noise value, and tree distance for a given location.
 - **`GET /highest_trip_id`**: Returns the highest trip_id in the database.
 - **`GET /login`**: Login a user.
-- **`GET /register`**: Register a user.
+- **`GET /register`**: Register a new user.
 - **`GET /insert_trip`**: Insert a new trip into the database.
 - **`GET /get_trips`**: Get trips for a user.
 - **`POST /update_mean_ri`**: Update the mean RI of a trip.
