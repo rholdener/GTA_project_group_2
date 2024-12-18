@@ -1,6 +1,6 @@
 # GTA Project Group 2
 
-This project is a Flask-based web application that provides various endpoints to interact with a PostgreSQL database. The application is designed to handle data related to air pollution, noise levels, and tree counts in the GTA area.
+This project is a Flask-based web application that provides various endpoints to interact with a PostgreSQL database. The application is designed to handle data related to air pollution, noise levels and tree counts in the GTA area.
 
 ## Prerequisites
 - "gta24" conda environment
@@ -11,8 +11,8 @@ This project is a Flask-based web application that provides various endpoints to
 To start the Flask application, follow these steps:
 
 1. Activate the conda environment
-2. Navigate to the project directory:
-3. Start the Flask application:
+2. Navigate to the project directory
+3. Start the Flask application
 
 The application should now be running, and you can access it via your web browser at `http://localhost:8989`.
 
@@ -22,7 +22,7 @@ The application should now be running, and you can access it via your web browse
 - **`GET /`**: Test the connection to the server.
 - **`GET /test_data`**: Fetch data from the database.
 - **`GET /point_history`**: Get all points of a trip.
-- **`GET /calculate_ri`**: Calculate the RI value, noise value, and tree distance for a given location.
+- **`GET /calculate_ri`**: Calculate the RI value, noise value, pollution value and tree count for a given location.
 - **`GET /highest_trip_id`**: Returns the highest trip_id in the database.
 - **`GET /login`**: Login a user.
 - **`GET /register`**: Register a new user.
