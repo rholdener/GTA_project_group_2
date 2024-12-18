@@ -3,14 +3,14 @@
 This project is a Flask-based web application that provides various endpoints to interact with a PostgreSQL database. The application is designed to handle data related to air pollution, noise levels, and tree counts in the GTA area.
 
 ## Prerequisites
-- "gta24" conda Enviroment
+- "gta24" conda environment
 - PostgreSQL database
 
 ## Running the Application
 
 To start the Flask application, follow these steps:
 
-1. Activate the conda enviroment
+1. Activate the conda environment
 2. Navigate to the project directory:
 3. Start the Flask application:
 
