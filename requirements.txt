@@ -1,0 +1,5 @@
+flask==2.2.2
+flask-cors
+werkzeug==2.2.2
+psycopg2-binary
+json5==0.9.6
